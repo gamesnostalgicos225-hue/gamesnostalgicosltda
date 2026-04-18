@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #020205; /* Deep cyber dark as fallback */
+  background-image: 
+    linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.8) 100%),
+    url('/bg-futurista.png');
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  color: white;
+  overflow-x: hidden;
+}
