@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { syncToCloud, loadFromCloud } from './lib/sync';
 import { Search, Filter, User, ShoppingCart, Eye, EyeOff, Shield, LogOut, Package, Users, Gamepad2, CheckCircle2, XCircle, MessageCircle, Plus, Edit, Trash2, X, DownloadCloud, Send } from 'lucide-react';
 
 // Games list convertida para State dentro do App.tsx
@@ -126,6 +127,27 @@ export default function App() {
   const cartTotalQty = cartItems.reduce((acc, item) => acc + item.qty, 0);
 
   useEffect(() => {
+    const hydrate = async () => {
+      const serverUsers = await loadFromCloud('users');
+      if (serverUsers) setUsersList(serverUsers);
+      else syncToCloud('users', usersList);
+
+      const serverPedidos = await loadFromCloud('gamesnostalgicos_pedidos');
+      if (serverPedidos) setPedidosList(serverPedidos);
+      else syncToCloud('gamesnostalgicos_pedidos', pedidosList);
+
+      const serverConsoles = await loadFromCloud('consoles');
+      if (serverConsoles) setConsolesList(serverConsoles);
+      else syncToCloud('consoles', consolesList);
+
+      const serverGames = await loadFromCloud('games');
+      if (serverGames) setGamesList(serverGames);
+      else syncToCloud('games', gamesList);
+    };
+    hydrate();
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
   }, [cartItems]);
 
@@ -228,10 +250,12 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem('users', JSON.stringify(usersList));
+    syncToCloud('users', usersList);
   }, [usersList]);
 
   useEffect(() => {
     localStorage.setItem('gamesnostalgicos_pedidos', JSON.stringify(pedidosList));
+    syncToCloud('gamesnostalgicos_pedidos', pedidosList);
   }, [pedidosList]);
 
   const [consolesList, setConsolesList] = useState<any[]>(() => {
@@ -251,10 +275,12 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem('consoles', JSON.stringify(consolesList));
+    syncToCloud('consoles', consolesList);
   }, [consolesList]);
 
   useEffect(() => {
     localStorage.setItem('games', JSON.stringify(gamesList));
+    syncToCloud('games', gamesList);
   }, [gamesList]);
 
   const activeConsoles = consolesList.filter(c => c.status === 'ATIVO');
