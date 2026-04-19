@@ -2229,8 +2229,7 @@ export default function App() {
             </div>
           </div>
           <div className="text-center md:text-right text-gray-500 text-sm font-mono flex flex-col gap-2">
-            <p>© 2025 Games Nostálgicos. Todos os direitos reservados.</p>
-            <p>PIX: gamesnostalgicos225@gmail.com</p>
+            <p>© 2026 Games Nostálgicos. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>
