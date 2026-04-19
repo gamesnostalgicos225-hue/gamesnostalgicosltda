@@ -127,22 +127,37 @@ export default function App() {
   const cartTotalQty = cartItems.reduce((acc, item) => acc + item.qty, 0);
 
   useEffect(() => {
+    const mergeArrays = (local: any[], cloud: any[] | null): any[] => {
+      if (!cloud || cloud.length === 0) return local;
+      if (local.length === 0) return cloud;
+      const merged = [...cloud];
+      const cloudIds = new Set(cloud.map((c: any) => c.id));
+      for (const item of local) {
+        if (!cloudIds.has(item.id)) merged.push(item);
+      }
+      return merged;
+    };
+
     const hydrate = async () => {
       const serverUsers = await loadFromCloud('users');
-      if (serverUsers) setUsersList(serverUsers);
-      else syncToCloud('users', usersList);
+      const mergedUsers = mergeArrays(usersList, serverUsers);
+      setUsersList(mergedUsers);
+      syncToCloud('users', mergedUsers);
 
       const serverPedidos = await loadFromCloud('gamesnostalgicos_pedidos');
-      if (serverPedidos) setPedidosList(serverPedidos);
-      else syncToCloud('gamesnostalgicos_pedidos', pedidosList);
+      const mergedPedidos = mergeArrays(pedidosList, serverPedidos);
+      setPedidosList(mergedPedidos);
+      syncToCloud('gamesnostalgicos_pedidos', mergedPedidos);
 
       const serverConsoles = await loadFromCloud('consoles');
-      if (serverConsoles) setConsolesList(serverConsoles);
-      else syncToCloud('consoles', consolesList);
+      const mergedConsoles = mergeArrays(consolesList, serverConsoles);
+      setConsolesList(mergedConsoles);
+      syncToCloud('consoles', mergedConsoles);
 
       const serverGames = await loadFromCloud('games');
-      if (serverGames) setGamesList(serverGames);
-      else syncToCloud('games', gamesList);
+      const mergedGames = mergeArrays(gamesList, serverGames);
+      setGamesList(mergedGames);
+      syncToCloud('games', mergedGames);
     };
     hydrate();
   }, []);
