@@ -25,7 +25,7 @@ export const loadFromCloud = async (key: string) => {
 // --- NOVAS FUNÇÕES PARA TABELAS ESPECÍFICAS (Sincronização Real) ---
 
 export const getGames = async () => {
-  const { data, error } = await supabase.from('games').select('*').order('title');
+  const { data, error } = await supabase.from('games').select('*').order('created_at', { ascending: false });
   if (error) throw error;
   return data;
 };
