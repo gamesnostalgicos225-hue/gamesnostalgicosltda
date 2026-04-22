@@ -1317,7 +1317,8 @@ export default function App() {
                         <button
                           onClick={async () => {
                             if (window.confirm(`Tem certeza que deseja excluir o console "${console.name}"?`)) {
-                              await supabase.from('consoles').delete().eq('id', console.id);
+                              const { error } = await supabase.from('consoles').delete().eq('id', console.id);
+                              if (error) alert(`Erro ao excluir console: ${error.message}`);
                             }
                           }}
                           className="py-1.5 px-3 flex items-center justify-center gap-2 rounded border border-[#ff6b00] text-[#ff6b00] hover:bg-[#ff6b00]/10 hover:shadow-[0_0_15px_rgba(255,107,0,0.2)] transition-colors text-[10px] font-bold uppercase"
@@ -1548,7 +1549,10 @@ export default function App() {
                     image: (form.elements.namedItem('image') as HTMLInputElement).value,
                     video: (form.elements.namedItem('video') as HTMLInputElement).value,
                   };
-                  supabase.from('consoles').update(updatedData).eq('id', editingConsole.id).then(() => setEditingConsole(null));
+                  supabase.from('consoles').update(updatedData).eq('id', editingConsole.id).then(({ error }) => {
+                    if (error) alert(`Erro ao salvar console: ${error.message}`);
+                    else setEditingConsole(null);
+                  });
                 }}
               >
 
@@ -1903,7 +1907,10 @@ export default function App() {
                     video: (form.elements.namedItem('video') as HTMLInputElement).value,
                     status: 'ATIVO',
                   };
-                  supabase.from('consoles').insert(newConsole).then(() => setIsAddingConsole(false));
+                  supabase.from('consoles').insert(newConsole).then(({ error }) => {
+                    if (error) alert(`Erro ao adicionar console: ${error.message}`);
+                    else setIsAddingConsole(false);
+                  });
                 }}
               >
                 <div>
