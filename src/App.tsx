@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { syncToCloud, loadFromCloud } from './lib/sync';
+import { supabase } from './lib/supabase';
+import { getGames, getConsoles, getPedidos, getUsers } from './lib/sync';
 import { Search, Filter, User, ShoppingCart, Eye, EyeOff, Shield, LogOut, Package, Users, Gamepad2, CheckCircle2, XCircle, MessageCircle, Plus, Edit, Trash2, X, DownloadCloud, Send } from 'lucide-react';
 
 // Games list convertida para State dentro do App.tsx
@@ -127,56 +128,50 @@ export default function App() {
   const cartTotalQty = cartItems.reduce((acc, item) => acc + item.qty, 0);
 
   useEffect(() => {
-    const mergeArrays = (local: any[], cloud: any[] | null): any[] => {
-      if (!cloud || cloud.length === 0) return local;
-      if (local.length === 0) return cloud;
-      const merged = [...cloud];
-      const cloudIds = new Set(cloud.map((c: any) => c.id));
-      for (const item of local) {
-        if (!cloudIds.has(item.id)) merged.push(item);
-      }
-      return merged;
-    };
-
     const hydrate = async () => {
-      const serverUsers = await loadFromCloud('users');
-      const mergedUsers = mergeArrays(usersList, serverUsers);
-      setUsersList(mergedUsers);
-      syncToCloud('users', mergedUsers);
-
-      const serverPedidos = await loadFromCloud('gamesnostalgicos_pedidos');
-      const mergedPedidos = mergeArrays(pedidosList, serverPedidos);
-      setPedidosList(mergedPedidos);
-      syncToCloud('gamesnostalgicos_pedidos', mergedPedidos);
-
-      const serverConsoles = await loadFromCloud('consoles');
-      const mergedConsoles = mergeArrays(consolesList, serverConsoles);
-      setConsolesList(mergedConsoles);
-      syncToCloud('consoles', mergedConsoles);
-
-      const serverGames = await loadFromCloud('games');
-      const mergedGames = mergeArrays(gamesList, serverGames);
-      setGamesList(mergedGames);
-      syncToCloud('games', mergedGames);
+      try {
+        const [games, consoles, pedidos, users] = await Promise.all([
+          getGames(),
+          getConsoles(),
+          getPedidos(),
+          getUsers()
+        ]);
+        setGamesList(games || []);
+        setConsolesList(consoles || []);
+        setPedidosList(pedidos || []);
+        setUsersList(users || []);
+      } catch (err) {
+        console.error('Erro ao carregar dados do Supabase:', err);
+      }
     };
+
     hydrate();
+
+    // Configuração do Realtime
+    const channel = supabase
+      .channel('db-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, () => getGames().then(setGamesList))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'consoles' }, () => getConsoles().then(setConsolesList))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, () => getPedidos().then(setPedidosList))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_items' }, () => getPedidos().then(setPedidosList))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_messages' }, () => getPedidos().then(setPedidosList))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => getUsers().then(setUsersList))
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const [usersList, setUsersList] = useState<any[]>(() => {
-    const saved = localStorage.getItem('users');
-    return saved ? JSON.parse(saved) : initialUsers;
-  });
+  const [usersList, setUsersList] = useState<any[]>([]);
 
   const [activeChatOrderId, setActiveChatOrderId] = useState<number | null>(null);
 
-  const [pedidosList, setPedidosList] = useState<any[]>(() => {
-    const saved = localStorage.getItem('gamesnostalgicos_pedidos');
-    return saved ? JSON.parse(saved) : initialPedidos;
-  });
+  const [pedidosList, setPedidosList] = useState<any[]>([]);
 
   const renderChatModal = () => {
          if (!activeChatOrderId) return null;
@@ -263,40 +258,19 @@ export default function App() {
          );
   };
 
-  useEffect(() => {
-    localStorage.setItem('users', JSON.stringify(usersList));
-    syncToCloud('users', usersList);
-  }, [usersList]);
+  // Os useEffects de salvamento local e sync genérico não são mais necessários para as listas principais
+  // Mantemos apenas o carrinho no localStorage se desejar, mas as listas virão do Realtime.
 
-  useEffect(() => {
-    localStorage.setItem('gamesnostalgicos_pedidos', JSON.stringify(pedidosList));
-    syncToCloud('gamesnostalgicos_pedidos', pedidosList);
-  }, [pedidosList]);
+  const [consolesList, setConsolesList] = useState<any[]>([]);
 
-  const [consolesList, setConsolesList] = useState<any[]>(() => {
-    const saved = localStorage.getItem('consoles');
-    return saved ? JSON.parse(saved) : initialConsoles;
-  });
-
-  const [gamesList, setGamesList] = useState<any[]>(() => {
-    const saved = localStorage.getItem('games');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [gamesList, setGamesList] = useState<any[]>([]);
 
   const [isAddingGame, setIsAddingGame] = useState(false);
   const [selectedGame, setSelectedGame] = useState<any>(null);
   const [fetchUrl, setFetchUrl] = useState('');
   const [isFetchingUrl, setIsFetchingUrl] = useState(false);
 
-  useEffect(() => {
-    localStorage.setItem('consoles', JSON.stringify(consolesList));
-    syncToCloud('consoles', consolesList);
-  }, [consolesList]);
-
-  useEffect(() => {
-    localStorage.setItem('games', JSON.stringify(gamesList));
-    syncToCloud('games', gamesList);
-  }, [gamesList]);
+  // Sincronização removida para evitar sobrescrever dados do Realtime
 
   const activeConsoles = consolesList.filter(c => c.status === 'ATIVO');
   const filters = ['TODOS', ...activeConsoles.map(c => c.name)];
@@ -1238,13 +1212,9 @@ export default function App() {
                           {/* Actions */}
                           <div className="flex flex-wrap gap-2 justify-end mt-auto pt-2 sm:pt-0">
                             <button
-                              onClick={() => {
-                                const updated = gamesList.map(g =>
-                                  g.id === game.id
-                                    ? { ...g, status: (g.status || 'ATIVO') === 'ATIVO' ? 'INATIVO' : 'ATIVO' }
-                                    : g
-                                );
-                                setGamesList(updated);
+                              onClick={async () => {
+                                const newStatus = (game.status || 'ATIVO') === 'ATIVO' ? 'INATIVO' : 'ATIVO';
+                                await supabase.from('games').update({ status: newStatus }).eq('id', game.id);
                               }}
                               className={`py-1.5 px-3 flex items-center justify-center gap-2 rounded border transition-colors text-[10px] font-bold uppercase shadow-[0_0_10px_rgba(0,0,0,0.5)] ${(game.status || 'ATIVO') === 'INATIVO'
                                 ? 'border-[#00ff44] text-[#00ff44] hover:bg-[#00ff44]/10 hover:shadow-[0_0_15px_rgba(0,255,68,0.2)]'
@@ -1260,9 +1230,9 @@ export default function App() {
                               <Edit size={12} /> Editar
                             </button>
                             <button
-                              onClick={() => {
+                              onClick={async () => {
                                 if (confirm(`Tem certeza que deseja excluir "${game.title}"?`)) {
-                                  setGamesList(gamesList.filter(g => g.id !== game.id));
+                                  await supabase.from('games').delete().eq('id', game.id);
                                 }
                               }}
                               className="py-1.5 px-3 flex items-center justify-center gap-2 rounded border border-[#ff6b00] text-[#ff6b00] hover:bg-[#ff6b00]/10 hover:shadow-[0_0_15px_rgba(255,107,0,0.2)] transition-colors text-[10px] font-bold uppercase"
@@ -1322,22 +1292,10 @@ export default function App() {
                       {/* Actions */}
                       <div className="flex flex-wrap gap-2 justify-end mt-auto pt-2 sm:pt-0">
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             const newStatus = (console.status || 'ATIVO') === 'ATIVO' ? 'INATIVO' : 'ATIVO';
-
-                            const updatedConsoles = consolesList.map(c =>
-                              c.id === console.id
-                                ? { ...c, status: newStatus }
-                                : c
-                            );
-                            setConsolesList(updatedConsoles);
-
-                            const updatedGames = gamesList.map(g =>
-                              g.platform === console.slug
-                                ? { ...g, status: newStatus }
-                                : g
-                            );
-                            setGamesList(updatedGames);
+                            await supabase.from('consoles').update({ status: newStatus }).eq('id', console.id);
+                            await supabase.from('games').update({ status: newStatus }).eq('platform', console.slug);
                           }}
                           className={`py-1.5 px-3 flex items-center justify-center gap-2 rounded border transition-colors text-[10px] font-bold uppercase shadow-[0_0_10px_rgba(0,0,0,0.5)] ${(console.status || 'ATIVO') === 'INATIVO'
                             ? 'border-[#00ff44] text-[#00ff44] hover:bg-[#00ff44]/10 hover:shadow-[0_0_15px_rgba(0,255,68,0.2)]'
@@ -1353,9 +1311,9 @@ export default function App() {
                           <Edit size={12} /> Editar
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (window.confirm(`Tem certeza que deseja excluir o console "${console.name}"?`)) {
-                              setConsolesList(consolesList.filter(c => c.id !== console.id));
+                              await supabase.from('consoles').delete().eq('id', console.id);
                             }
                           }}
                           className="py-1.5 px-3 flex items-center justify-center gap-2 rounded border border-[#ff6b00] text-[#ff6b00] hover:bg-[#ff6b00]/10 hover:shadow-[0_0_15px_rgba(255,107,0,0.2)] transition-colors text-[10px] font-bold uppercase"
@@ -1411,13 +1369,9 @@ export default function App() {
                       {/* Actions */}
                       <div className="flex flex-wrap gap-2 justify-end mt-auto pt-2 sm:pt-0">
                         <button
-                          onClick={() => {
-                            const updated = usersList.map(u =>
-                              u.id === user.id
-                                ? { ...u, status: (u.status || 'ATIVO') === 'ATIVO' ? 'INATIVO' : 'ATIVO' }
-                                : u
-                            );
-                            setUsersList(updated);
+                          onClick={async () => {
+                            const newStatus = (user.status || 'ATIVO') === 'ATIVO' ? 'INATIVO' : 'ATIVO';
+                            await supabase.from('users').update({ status: newStatus }).eq('id', user.id);
                           }}
                           className={`py-1.5 px-3 flex items-center justify-center gap-2 rounded border transition-colors text-[10px] font-bold uppercase shadow-[0_0_10px_rgba(0,0,0,0.5)] ${(user.status || 'ATIVO') === 'INATIVO'
                             ? 'border-[#00ff44] text-[#00ff44] hover:bg-[#00ff44]/10 hover:shadow-[0_0_15px_rgba(0,255,68,0.2)]'
@@ -1433,9 +1387,9 @@ export default function App() {
                           <Edit size={12} /> Editar
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (window.confirm(`Tem certeza que deseja excluir o usuário "${user.name}"?`)) {
-                              setUsersList(usersList.filter(u => u.id !== user.id));
+                              await supabase.from('users').delete().eq('id', user.id);
                             }
                           }}
                           className="py-1.5 px-3 flex items-center justify-center gap-2 rounded border border-[#ff6b00] text-[#ff6b00] hover:bg-[#ff6b00]/10 hover:shadow-[0_0_15px_rgba(255,107,0,0.2)] transition-colors text-[10px] font-bold uppercase"
@@ -1529,8 +1483,8 @@ export default function App() {
                           )}
                         </button>
                         <button
-                          onClick={() => {
-                            setPedidosList(pedidosList.map(p => p.id === pedido.id ? { ...p, status: 'PAGO' } : p));
+                          onClick={async () => {
+                            await supabase.from('pedidos').update({ status: 'PAGO' }).eq('id', pedido.id);
                           }}
                           className={`py-1.5 px-3 flex items-center justify-center gap-2 rounded border transition-colors text-[10px] font-bold uppercase ${
                             pedido.status === 'PAGO' 
@@ -1541,9 +1495,9 @@ export default function App() {
                           <CheckCircle2 size={12} /> Confirmar
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (window.confirm(`Tem certeza que deseja recusar o pedido #${pedido.orderNumber}?`)) {
-                              setPedidosList(pedidosList.map(p => p.id === pedido.id ? { ...p, status: 'RECUSADO' } : p));
+                              await supabase.from('pedidos').update({ status: 'RECUSADO' }).eq('id', pedido.id);
                             }
                           }}
                           className={`py-1.5 px-3 flex items-center justify-center gap-2 rounded border transition-colors text-[10px] font-bold uppercase ${
@@ -1584,20 +1538,13 @@ export default function App() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   const form = e.currentTarget;
-                  const updatedConsoles = consolesList.map(c => {
-                    if (c.id === editingConsole.id) {
-                      return {
-                        ...c,
-                        name: (form.elements.namedItem('name') as HTMLInputElement).value,
-                        slug: (form.elements.namedItem('slug') as HTMLInputElement).value,
-                        image: (form.elements.namedItem('image') as HTMLInputElement).value,
-                        video: (form.elements.namedItem('video') as HTMLInputElement).value,
-                      };
-                    }
-                    return c;
-                  });
-                  setConsolesList(updatedConsoles);
-                  setEditingConsole(null);
+                  const updatedData = {
+                    name: (form.elements.namedItem('name') as HTMLInputElement).value,
+                    slug: (form.elements.namedItem('slug') as HTMLInputElement).value,
+                    image: (form.elements.namedItem('image') as HTMLInputElement).value,
+                    video: (form.elements.namedItem('video') as HTMLInputElement).value,
+                  };
+                  supabase.from('consoles').update(updatedData).eq('id', editingConsole.id).then(() => setEditingConsole(null));
                 }}
               >
 
@@ -1688,22 +1635,15 @@ export default function App() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   const form = e.currentTarget;
-                  const updatedGames = gamesList.map(g => {
-                    if (g.id === editingGame.id) {
-                      return {
-                        ...g,
-                        title: (form.elements.namedItem('title') as HTMLInputElement).value,
-                        platform: (form.elements.namedItem('console') as HTMLSelectElement).value,
-                        price: parseFloat((form.elements.namedItem('price') as HTMLInputElement).value) || 0,
-                        image: (form.elements.namedItem('image') as HTMLInputElement).value,
-                        video: (form.elements.namedItem('video') as HTMLInputElement).value,
-                        description: (form.elements.namedItem('description') as HTMLTextAreaElement).value,
-                      };
-                    }
-                    return g;
-                  });
-                  setGamesList(updatedGames);
-                  setEditingGame(null);
+                  const updatedData = {
+                    title: (form.elements.namedItem('title') as HTMLInputElement).value,
+                    platform: (form.elements.namedItem('console') as HTMLSelectElement).value,
+                    price: parseFloat((form.elements.namedItem('price') as HTMLInputElement).value) || 0,
+                    description: (form.elements.namedItem('description') as HTMLTextAreaElement).value,
+                    video: (form.elements.namedItem('video') as HTMLInputElement).value,
+                    image: (form.elements.namedItem('image') as HTMLInputElement).value,
+                  };
+                  supabase.from('games').update(updatedData).eq('id', editingGame.id).then(() => setEditingGame(null));
                 }}
               >
                 {/* Nome */}
@@ -1843,17 +1783,15 @@ export default function App() {
                   e.preventDefault();
                   const form = e.currentTarget;
                   const newGame = {
-                    id: Date.now(),
                     title: (form.elements.namedItem('title') as HTMLInputElement).value,
                     platform: (form.elements.namedItem('console') as HTMLSelectElement).value,
                     price: parseFloat((form.elements.namedItem('price') as HTMLInputElement).value) || 0,
-                    image: (form.elements.namedItem('image') as HTMLInputElement).value,
-                    video: (form.elements.namedItem('video') as HTMLInputElement).value,
                     description: (form.elements.namedItem('description') as HTMLTextAreaElement).value,
+                    video: (form.elements.namedItem('video') as HTMLInputElement).value,
+                    image: (form.elements.namedItem('image') as HTMLInputElement).value,
                     status: 'ATIVO',
                   };
-                  setGamesList([newGame, ...gamesList]);
-                  setIsAddingGame(false);
+                  supabase.from('games').insert(newGame).then(() => setIsAddingGame(false));
                 }}
               >
                 {/* Nome */}
