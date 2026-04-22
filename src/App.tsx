@@ -266,6 +266,7 @@ export default function App() {
   const [gamesList, setGamesList] = useState<any[]>([]);
 
   const [isAddingGame, setIsAddingGame] = useState(false);
+  const [isAddingConsole, setIsAddingConsole] = useState(false);
   const [selectedGame, setSelectedGame] = useState<any>(null);
   const [fetchUrl, setFetchUrl] = useState('');
   const [isFetchingUrl, setIsFetchingUrl] = useState(false);
@@ -1117,7 +1118,7 @@ export default function App() {
               onClick={() => setAdminActiveTab('consoles')}
               className={`flex items-center gap-2 cursor-pointer transition-colors ${adminActiveTab === 'consoles' ? 'text-white' : 'hover:text-white'}`}
             >
-              <Gamepad2 size={16} /> CONSOLES (7)
+              <Gamepad2 size={16} /> CONSOLES ({consolesList.length})
             </div>
           </div>
 
@@ -1252,7 +1253,10 @@ export default function App() {
 
           {adminActiveTab === 'consoles' && (
             <div className="space-y-6">
-              <button className="bg-[#00e5ff] text-black font-black uppercase py-2.5 px-6 rounded flex items-center gap-2 hover:bg-cyan-400 transition-colors text-sm tracking-wider">
+              <button 
+                onClick={() => setIsAddingConsole(true)}
+                className="bg-[#00e5ff] text-black font-black uppercase py-2.5 px-6 rounded flex items-center gap-2 hover:bg-cyan-400 transition-colors text-sm tracking-wider"
+              >
                 <Plus size={18} strokeWidth={3} /> ADICIONAR CONSOLE
               </button>
 
@@ -1871,6 +1875,82 @@ export default function App() {
                     className="w-full bg-[#00e5ff] text-black font-black uppercase py-4 rounded hover:bg-cyan-400 transition-colors tracking-wider text-sm shadow-[0_0_15px_rgba(0,229,255,0.3)]"
                   >
                     ADICIONAR
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+        {isAddingConsole && (
+          <div className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-[#0a0a0a] border border-[#00e5ff] rounded shadow-[0_0_50px_rgba(0,229,255,0.2)] w-full max-w-lg relative my-auto">
+              <div className="flex justify-between items-center p-6 border-b border-gray-800">
+                <h2 className="text-white font-black uppercase tracking-tighter text-xl">ADICIONAR NOVO CONSOLE</h2>
+                <button onClick={() => setIsAddingConsole(false)} className="text-gray-400 hover:text-white transition-colors">
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <form 
+                className="p-6 space-y-5"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const form = e.currentTarget;
+                  const newConsole = {
+                    name: (form.elements.namedItem('name') as HTMLInputElement).value,
+                    slug: (form.elements.namedItem('slug') as HTMLInputElement).value,
+                    image: (form.elements.namedItem('image') as HTMLInputElement).value,
+                    video: (form.elements.namedItem('video') as HTMLInputElement).value,
+                    status: 'ATIVO',
+                  };
+                  supabase.from('consoles').insert(newConsole).then(() => setIsAddingConsole(false));
+                }}
+              >
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">NOME DO CONSOLE</label>
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    className="w-full bg-black border border-gray-800 rounded px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-colors text-white font-sans"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">SLUG (Ex: playstation-2)</label>
+                  <input
+                    type="text"
+                    name="slug"
+                    required
+                    className="w-full bg-black border border-gray-800 rounded px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-colors text-white font-sans"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">URL DA IMAGEM</label>
+                  <input
+                    type="text"
+                    name="image"
+                    required
+                    className="w-full bg-black border border-gray-800 rounded px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-colors text-white font-sans"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">URL DO VÍDEO (OPCIONAL)</label>
+                  <input
+                    type="text"
+                    name="video"
+                    className="w-full bg-black border border-gray-800 rounded px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-colors text-white font-sans"
+                  />
+                </div>
+
+                <div className="pt-4 mt-8 border-t border-gray-800">
+                  <button
+                    type="submit"
+                    className="w-full bg-[#00e5ff] text-black font-black uppercase py-4 rounded hover:bg-cyan-400 transition-colors tracking-wider text-sm shadow-[0_0_15px_rgba(0,229,255,0.3)]"
+                  >
+                    CADASTRAR CONSOLE
                   </button>
                 </div>
               </form>
