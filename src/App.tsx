@@ -126,6 +126,17 @@ export default function App() {
   const [isProcessingPIX, setIsProcessingPIX] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
 
+  const isAdminRef = React.useRef(isAdmin);
+  const loggedInEmailRef = React.useRef(loggedInEmail);
+
+  useEffect(() => {
+    isAdminRef.current = isAdmin;
+  }, [isAdmin]);
+
+  useEffect(() => {
+    loggedInEmailRef.current = loggedInEmail;
+  }, [loggedInEmail]);
+
   const [cartItems, setCartItems] = useState<any[]>(() => {
     const email = localStorage.getItem('loggedInEmail') || '';
     const key = email ? `cartItems_${email}` : 'cartItems';
@@ -162,11 +173,21 @@ export default function App() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'consoles' }, () => getConsoles().then(setConsolesList))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, () => getPedidos().then(setPedidosList))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_items' }, () => getPedidos().then(setPedidosList))
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedido_messages' }, (payload: any) => {
-          const isMsgFromMe = (isAdmin && payload.new.sender === 'admin') || (!isAdmin && payload.new.sender === 'cliente');
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedido_messages' }, async (payload: any) => {
+          const currentIsAdmin = isAdminRef.current;
+          const currentEmail = loggedInEmailRef.current;
+          
+          const isMsgFromMe = (currentIsAdmin && payload.new.sender === 'admin') || (!currentIsAdmin && payload.new.sender === 'cliente');
+          
           if (!isMsgFromMe) {
-            setNotification("Você tem mensagem a ser lida!");
-            setTimeout(() => setNotification(null), 5000);
+            // Verifica se a mensagem é para este usuário
+            // Admin vê todas. Cliente vê apenas se o pedido_id pertence a um pedido dele.
+            const { data: pedido } = await supabase.from('pedidos').select('client_email').eq('id', payload.new.pedido_id).single();
+            
+            if (currentIsAdmin || (pedido && pedido.client_email === currentEmail)) {
+               setNotification("Você tem mensagem a ser lida!");
+               setTimeout(() => setNotification(null), 5000);
+            }
           }
           getPedidos().then(setPedidosList);
       })
