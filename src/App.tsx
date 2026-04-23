@@ -184,9 +184,12 @@ export default function App() {
             // Admin vê todas. Cliente vê apenas se o pedido_id pertence a um pedido dele.
             const { data: pedido } = await supabase.from('pedidos').select('client_email').eq('id', payload.new.pedido_id).single();
             
+            const normalizedClientEmail = (pedido?.client_email || '').toLowerCase().trim();
+            const normalizedMyEmail = (currentEmail || '').toLowerCase().trim();
+
             if (currentIsAdmin || (normalizedMyEmail && normalizedClientEmail === normalizedMyEmail)) {
                setNotification("Você tem mensagem a ser lida");
-               setTimeout(() => setNotification(null), 5000);
+               setTimeout(() => setNotification(null), 6000);
             }
           }
           getPedidos().then(setPedidosList);
