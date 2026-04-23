@@ -124,6 +124,7 @@ export default function App() {
   
   const [pixPayload, setPixPayload] = useState<any>(null);
   const [isProcessingPIX, setIsProcessingPIX] = useState(false);
+  const [notification, setNotification] = useState<string | null>(null);
 
   const [cartItems, setCartItems] = useState<any[]>(() => {
     const email = localStorage.getItem('loggedInEmail') || '';
@@ -161,7 +162,16 @@ export default function App() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'consoles' }, () => getConsoles().then(setConsolesList))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, () => getPedidos().then(setPedidosList))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_items' }, () => getPedidos().then(setPedidosList))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_messages' }, () => getPedidos().then(setPedidosList))
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedido_messages' }, (payload: any) => {
+          const isMsgFromMe = (isAdmin && payload.new.sender === 'admin') || (!isAdmin && payload.new.sender === 'cliente');
+          if (!isMsgFromMe) {
+            setNotification("Você tem mensagem a ser lida!");
+            setTimeout(() => setNotification(null), 5000);
+          }
+          getPedidos().then(setPedidosList);
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedido_messages' }, () => getPedidos().then(setPedidosList))
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'pedido_messages' }, () => getPedidos().then(setPedidosList))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => getUsers().then(setUsersList))
       .subscribe();
 
