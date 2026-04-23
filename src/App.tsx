@@ -1183,10 +1183,10 @@ export default function App() {
       <div className="min-h-screen bg-transparent text-white font-sans flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <div className="mb-10 text-center flex flex-col items-center">
-            <img 
-              src="/logo.png" 
-              alt="Games Nostálgicos" 
-              className="w-20 h-20 rounded-full border-4 border-[#ff6b00] shadow-[0_0_20px_rgba(255,107,0,0.4)] object-cover bg-white mb-6"
+            <img
+              src="/logo.png"
+              alt="Games Nostálgicos"
+              className="w-24 h-24 rounded-full border-4 border-[#00e5ff] shadow-[0_0_15px_rgba(0,229,255,0.5)] object-cover bg-white mb-6"
             />
             <h1 className="text-4xl font-black uppercase tracking-tight mb-2">LOGIN</h1>
             <p className="text-gray-400 font-mono text-sm">Games Nostálgicos</p>
@@ -1250,10 +1250,10 @@ export default function App() {
       <div className="min-h-screen bg-transparent text-white font-sans flex items-center justify-center p-4">
         <div className="w-full max-w-md border border-gray-800 p-8 rounded-md bg-[#0a0a0a]">
           <div className="mb-10 text-center flex flex-col items-center">
-            <img 
-              src="/logo.png" 
-              alt="Games Nostálgicos" 
-              className="w-20 h-20 rounded-full border-4 border-[#ff6b00] shadow-[0_0_20px_rgba(255,107,0,0.4)] object-cover bg-white mb-6"
+            <img
+              src="/logo.png"
+              alt="Games Nostálgicos"
+              className="w-24 h-24 rounded-full border-4 border-[#00e5ff] shadow-[0_0_15px_rgba(0,229,255,0.5)] object-cover bg-white mb-6"
             />
             <h1 className="text-4xl font-black uppercase tracking-tight mb-2">CADASTRO</h1>
             <p className="text-gray-400 font-mono text-sm">Games Nostálgicos</p>
