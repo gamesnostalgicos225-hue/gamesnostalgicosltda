@@ -46,7 +46,14 @@ export const getPedidos = async () => {
     `)
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return data;
+  return data.map((d: any) => ({
+    ...d,
+    orderNumber: d.order_number,
+    clientEmail: d.client_email,
+    clientInfo: d.client_info,
+    hasUnreadCliente: d.has_unread_cliente,
+    hasUnreadAdmin: d.has_unread_admin
+  }));
 };
 
 export const getUsers = async () => {

@@ -201,14 +201,15 @@ export default function App() {
          
          const isAdmin = currentView === 'admin';
          
-         const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
+         const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
-            const text = (e.currentTarget.elements.namedItem('chatInput') as HTMLInputElement).value.trim();
+            const inputEl = e.currentTarget.elements.namedItem('chatInput') as HTMLInputElement;
+            const text = inputEl.value.trim();
             if(!text) return;
             
-            const newMessage = {
+            const newMessageObj = {
                sender: isAdmin ? 'admin' : 'cliente',
-               text,
+               text: text,
                timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
             };
             
@@ -216,7 +217,7 @@ export default function App() {
                if(p.id === activeChatOrderId) {
                   return { 
                      ...p, 
-                     messages: [...(p.messages || []), newMessage],
+                     messages: [...(p.messages || []), { ...newMessageObj, pedido_id: activeChatOrderId }],
                      hasUnreadCliente: isAdmin ? true : p.hasUnreadCliente,
                      hasUnreadAdmin: !isAdmin ? true : p.hasUnreadAdmin
                   };
@@ -224,7 +225,16 @@ export default function App() {
                return p;
             }));
             
-            (e.currentTarget.elements.namedItem('chatInput') as HTMLInputElement).value = '';
+            inputEl.value = '';
+
+            const { error: msgErr } = await supabase.from('pedido_messages').insert({ ...newMessageObj, pedido_id: activeChatOrderId });
+            if (msgErr) console.error("Erro no chat:", msgErr);
+
+            if (isAdmin) {
+               await supabase.from('pedidos').update({ has_unread_cliente: true }).eq('id', activeChatOrderId);
+            } else {
+               await supabase.from('pedidos').update({ has_unread_admin: true }).eq('id', activeChatOrderId);
+            }
          };
 
          return (
@@ -667,21 +677,43 @@ export default function App() {
       }
     };
 
-    const runFinalCheckoutStorage = () => {
-       const finalOrder = {
-          id: Date.now(),
-          orderNumber: pixPayload?.orderNumber || Math.random().toString(16).slice(2, 10).toUpperCase(),
-          clientEmail: loggedInEmail || emailInput || 'cliente@site.com',
+    const runFinalCheckoutStorage = async () => {
+       const orderNumberStr = pixPayload?.orderNumber || Math.random().toString(16).slice(2, 10).toUpperCase();
+       
+       const pedidoData = {
+          order_number: orderNumberStr,
+          client_email: loggedInEmail || emailInput || 'cliente@site.com',
           date: new Date().toLocaleString('pt-BR'),
           total: totalAmount,
-          items: cartItems.map(i => ({ ...i, name: i.title })),
           status: 'AGUARDANDO',
-          clientInfo: checkoutData
+          client_info: checkoutData,
+          has_unread_cliente: false,
+          has_unread_admin: false
        };
-       setPedidosList(prev => [finalOrder, ...prev]);
+
+       const { data: newOrder, error } = await supabase.from('pedidos').insert(pedidoData).select('*').single();
+       if (error) { 
+         alert('Erro ao salvar o pedido no banco. Motivo: ' + error.message); 
+         return; 
+       }
+
+       if (newOrder && cartItems.length > 0) {
+         const itemsToInsert = cartItems.map(i => ({
+            pedido_id: newOrder.id,
+            name: i.title || i.name,
+            platform: i.platform || null,
+            qty: i.qty,
+            price: i.price,
+            image: i.image || null
+         }));
+         const { error: errItems } = await supabase.from('pedido_items').insert(itemsToInsert);
+         if (errItems) console.error("Erro ao salvar itens", errItems);
+       }
+
+       getPedidos().then(setPedidosList);
        setCartItems([]);
        setPixPayload(null);
-       alert(`Pedido #${finalOrder.orderNumber} confirmado e aguardando pagamento!`);
+       alert(`Pedido #${orderNumberStr} confirmado! O vendedor preparará seu jogo.`);
        setCurrentView('account');
     };
 
