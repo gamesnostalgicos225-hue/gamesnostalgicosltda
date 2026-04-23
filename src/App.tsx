@@ -126,7 +126,9 @@ export default function App() {
   const [isProcessingPIX, setIsProcessingPIX] = useState(false);
 
   const [cartItems, setCartItems] = useState<any[]>(() => {
-    const saved = localStorage.getItem('cartItems');
+    const email = localStorage.getItem('loggedInEmail') || '';
+    const key = email ? `cartItems_${email}` : 'cartItems';
+    const saved = localStorage.getItem(key);
     return saved ? JSON.parse(saved) : [];
   });
 
@@ -168,9 +170,23 @@ export default function App() {
     };
   }, []);
 
+  const prevEmailRef = React.useRef(loggedInEmail);
+
   useEffect(() => {
-    localStorage.setItem('cartItems', JSON.stringify(cartItems));
-  }, [cartItems]);
+    if (prevEmailRef.current === loggedInEmail) {
+      const key = loggedInEmail ? `cartItems_${loggedInEmail}` : 'cartItems';
+      localStorage.setItem(key, JSON.stringify(cartItems));
+    }
+  }, [cartItems, loggedInEmail]);
+
+  useEffect(() => {
+    if (prevEmailRef.current !== loggedInEmail) {
+      const key = loggedInEmail ? `cartItems_${loggedInEmail}` : 'cartItems';
+      const saved = localStorage.getItem(key);
+      setCartItems(saved ? JSON.parse(saved) : []);
+      prevEmailRef.current = loggedInEmail;
+    }
+  }, [loggedInEmail]);
 
   const [usersList, setUsersList] = useState<any[]>([]);
 
@@ -362,6 +378,17 @@ export default function App() {
     setCurrentView(user.role === 'ADMIN' ? 'admin' : 'catalog');
   };
 
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setIsAdmin(false);
+    setLoggedInEmail('');
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('isAdmin');
+    localStorage.removeItem('loggedInEmail');
+    setCartItems([]);
+    setCurrentView('catalog');
+  };
 
   const handleChangePassword = () => {
     if (!accountNewPassword || !accountConfirmPassword) {
@@ -1126,7 +1153,7 @@ export default function App() {
               PEDIDOS
             </div>
             <button
-              onClick={() => { setIsLoggedIn(false); setIsAdmin(false); setCurrentView('catalog'); }}
+              onClick={handleLogout}
               className="hover:text-white transition-colors"
             >
               <LogOut size={16} />
@@ -2180,7 +2207,7 @@ export default function App() {
                   PAINEL ADMIN
                 </button>
                 <button
-                  onClick={() => { setIsLoggedIn(false); setIsAdmin(false); setLoggedInEmail(''); localStorage.removeItem('isLoggedIn'); localStorage.removeItem('isAdmin'); localStorage.removeItem('loggedInEmail'); setCurrentView('catalog'); }}
+                  onClick={handleLogout}
                   className="hover:text-white transition-colors"
                   title="Sair"
                 >
@@ -2197,7 +2224,7 @@ export default function App() {
                   MINHA CONTA
                 </button>
                 <button
-                  onClick={() => { setIsLoggedIn(false); setIsAdmin(false); setLoggedInEmail(''); localStorage.removeItem('isLoggedIn'); localStorage.removeItem('isAdmin'); localStorage.removeItem('loggedInEmail'); setCurrentView('catalog'); }}
+                  onClick={handleLogout}
                   className="hover:text-white transition-colors"
                   title="Sair"
                 >
@@ -2319,7 +2346,7 @@ export default function App() {
                 PAINEL ADMIN
               </button>
               <button
-                onClick={() => { setIsLoggedIn(false); setIsAdmin(false); setLoggedInEmail(''); localStorage.removeItem('isLoggedIn'); localStorage.removeItem('isAdmin'); localStorage.removeItem('loggedInEmail'); setCurrentView('catalog'); }}
+                onClick={handleLogout}
                 className="hover:text-white transition-colors"
                 title="Sair"
               >
@@ -2336,7 +2363,7 @@ export default function App() {
                 MINHA CONTA
               </button>
               <button
-                onClick={() => { setIsLoggedIn(false); setIsAdmin(false); setCurrentView('catalog'); }}
+                onClick={handleLogout}
                 className="hover:text-white transition-colors"
                 title="Sair"
               >
