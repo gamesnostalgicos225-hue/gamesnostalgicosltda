@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
-import { getGames, getConsoles, getPedidos, getUsers } from './lib/sync';
-import { Search, Filter, User, ShoppingCart, Eye, EyeOff, Shield, LogOut, Package, Users, Gamepad2, CheckCircle2, XCircle, MessageCircle, Plus, Edit, Trash2, X, DownloadCloud, Send } from 'lucide-react';
+import { getGames, getConsoles, getPedidos, getUsers, getSolicitacoes } from './lib/sync';
+import { Search, Filter, User, ShoppingCart, Eye, EyeOff, Shield, LogOut, Package, Users, Gamepad2, CheckCircle2, XCircle, MessageCircle, Plus, Edit, Trash2, X, DownloadCloud, Send, FilePlus } from 'lucide-react';
 
 // Games list convertida para State dentro do App.tsx
 
@@ -93,7 +93,7 @@ export default function App() {
   const [showPassword, setShowPassword] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
-  const [adminActiveTab, setAdminActiveTab] = useState<'pedidos' | 'usuarios' | 'jogos' | 'consoles'>('jogos');
+  const [adminActiveTab, setAdminActiveTab] = useState<'pedidos' | 'usuarios' | 'jogos' | 'consoles' | 'solicitacoes'>('jogos');
   const [editingConsole, setEditingConsole] = useState<any>(null);
   const [editingGame, setEditingGame] = useState<any>(null);
   const [adminGameSearch, setAdminGameSearch] = useState('');
@@ -121,10 +121,38 @@ export default function App() {
     cidade: '',
     estado: ''
   });
+
+  const handleRequestGame = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRequestGameName || !newRequestPlatform) {
+      alert("Preencha todos os campos!");
+      return;
+    }
+
+    const { error } = await supabase.from('solicitacoes').insert({
+      client_email: loggedInEmail || emailInput,
+      game_name: newRequestGameName,
+      platform: newRequestPlatform,
+      status: 'PENDENTE'
+    });
+
+    if (error) {
+      alert("Erro ao enviar pedido: " + error.message);
+    } else {
+      alert("Pedido enviado com sucesso! O administrador analisará sua solicitação.");
+      setIsAddingSolicitacao(false);
+      setNewRequestGameName('');
+      setNewRequestPlatform('');
+    }
+  };
   
   const [pixPayload, setPixPayload] = useState<any>(null);
   const [isProcessingPIX, setIsProcessingPIX] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
+  const [solicitacoesList, setSolicitacoesList] = useState<any[]>([]);
+  const [isAddingSolicitacao, setIsAddingSolicitacao] = useState(false);
+  const [newRequestGameName, setNewRequestGameName] = useState('');
+  const [newRequestPlatform, setNewRequestPlatform] = useState('');
 
   const isAdminRef = React.useRef(isAdmin);
   const loggedInEmailRef = React.useRef(loggedInEmail);
@@ -149,16 +177,18 @@ export default function App() {
   useEffect(() => {
     const hydrate = async () => {
       try {
-        const [games, consoles, pedidos, users] = await Promise.all([
+        const [games, consoles, pedidos, users, solicitacoes] = await Promise.all([
           getGames(),
           getConsoles(),
           getPedidos(),
-          getUsers()
+          getUsers(),
+          getSolicitacoes()
         ]);
         setGamesList(games || []);
         setConsolesList(consoles || []);
         setPedidosList(pedidos || []);
         setUsersList(users || []);
+        setSolicitacoesList(solicitacoes || []);
       } catch (err) {
         console.error('Erro ao carregar dados do Supabase:', err);
       }
@@ -173,6 +203,7 @@ export default function App() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'consoles' }, () => getConsoles().then(setConsolesList))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, () => getPedidos().then(setPedidosList))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_items' }, () => getPedidos().then(setPedidosList))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitacoes' }, () => getSolicitacoes().then(setSolicitacoesList))
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedido_messages' }, async (payload: any) => {
           const currentIsAdmin = isAdminRef.current;
           const currentEmail = loggedInEmailRef.current;
@@ -227,6 +258,74 @@ export default function App() {
   const [activeChatOrderId, setActiveChatOrderId] = useState<number | null>(null);
 
   const [pedidosList, setPedidosList] = useState<any[]>([]);
+
+  const renderNotificationBalloon = () => {
+    if (!notification) return null;
+    return (
+      <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] animate-bounce">
+        <div className="bg-[#00e5ff] text-black px-8 py-3 rounded-md font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(0,229,255,0.6)] flex items-center gap-3 border border-white/50 backdrop-blur-md">
+          <div className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+          </div>
+          {notification}
+        </div>
+      </div>
+    );
+  };
+
+  const renderAddSolicitacaoModal = () => {
+    if (!isAddingSolicitacao) return null;
+    return (
+      <div className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="bg-[#0a0a0a] border border-[#00e5ff] rounded shadow-[0_0_50px_rgba(0,229,255,0.3)] w-full max-w-md p-8 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#00e5ff] to-transparent"></div>
+          <button onClick={() => setIsAddingSolicitacao(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors">
+            <X size={24} />
+          </button>
+          
+          <h2 className="text-2xl font-black uppercase mb-2 text-white italic tracking-tighter">FAZER <span className="text-[#00e5ff]">PEDIDO</span></h2>
+          <p className="text-gray-400 text-[10px] uppercase font-mono mb-8 tracking-widest border-b border-gray-800 pb-2">Encomende o seu jogo nostalgia</p>
+
+          <form onSubmit={handleRequestGame} className="space-y-6">
+            <div className="flex flex-col">
+              <label className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest">NOME DO JOGO</label>
+              <input
+                autoFocus
+                type="text"
+                value={newRequestGameName}
+                onChange={(e) => setNewRequestGameName(e.target.value)}
+                placeholder="Ex: God of War 2"
+                className="bg-black border border-gray-800 rounded px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-all text-white placeholder:text-gray-700"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest">PLATAFORMA</label>
+              <select
+                value={newRequestPlatform}
+                onChange={(e) => setNewRequestPlatform(e.target.value)}
+                className="bg-black border border-gray-800 rounded px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-all text-white"
+              >
+                <option value="">Selecione...</option>
+                <option value="PS1">PLAYSTATION 1</option>
+                <option value="PS2">PLAYSTATION 2</option>
+                <option value="PS3">PLAYSTATION 3</option>
+                <option value="PS4">PLAYSTATION 4</option>
+                <option value="PC">PC</option>
+                <option value="DREAMCAST">DREAMCAST</option>
+              </select>
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-[#00e5ff] text-black font-black uppercase py-4 rounded hover:bg-cyan-300 transition-all tracking-widest text-sm shadow-[0_0_20px_rgba(0,229,255,0.2)] mt-4"
+            >
+              ENVIAR PEDIDO
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  };
 
   const renderChatModal = () => {
          if (!activeChatOrderId) return null;
@@ -579,13 +678,28 @@ export default function App() {
     return (
       <div className="min-h-screen bg-transparent text-white font-sans flex flex-col items-center p-6 w-full max-w-7xl mx-auto">
         {/* Header Simples */}
-        <div className="w-full border-b border-gray-800 pb-4 mb-10 flex justify-between items-center">
+        <div className="w-full border-b border-gray-800 pb-4 mb-10 flex justify-between items-center bg-black/40 backdrop-blur-md px-6 rounded">
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => setCurrentView('catalog')}>
             <img src="/logo.png" alt="Logo" className="w-12 h-12 rounded-full border-2 border-[#ff6b00]" />
           </div>
-          <button onClick={() => setCurrentView('catalog')} className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors">
-            VOLTAR AO CATÁLOGO
-          </button>
+          <nav className="flex items-center gap-6 text-xs font-bold tracking-wider text-gray-400">
+            <button onClick={() => setCurrentView('catalog')} className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors">
+              VOLTAR AO CATÁLOGO
+            </button>
+            <button 
+              onClick={() => {
+                if(!isLoggedIn) {
+                  alert("Por favor, faça login para fazer um pedido!");
+                  setCurrentView('login');
+                } else {
+                  setIsAddingSolicitacao(true);
+                }
+              }} 
+              className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors"
+            >
+              PEDIDO
+            </button>
+          </nav>
         </div>
 
         <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-10 text-left w-full">
@@ -795,9 +909,24 @@ export default function App() {
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => setCurrentView('catalog')}>
             <img src="/logo.png" alt="Logo" className="w-12 h-12 rounded-full border-2 border-[#ff6b00]" />
           </div>
-          <button onClick={() => setCurrentView('cart')} className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors">
-            VOLTAR AO CARRINHO
-          </button>
+          <nav className="flex items-center gap-6 text-xs font-bold tracking-wider text-gray-400">
+            <button onClick={() => setCurrentView('cart')} className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors">
+              VOLTAR AO CARRINHO
+            </button>
+            <button 
+              onClick={() => {
+                if(!isLoggedIn) {
+                  alert("Por favor, faça login para fazer um pedido!");
+                  setCurrentView('login');
+                } else {
+                  setIsAddingSolicitacao(true);
+                }
+              }} 
+              className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors"
+            >
+              PEDIDO
+            </button>
+          </nav>
         </div>
 
         <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-8 text-left w-full">
@@ -903,25 +1032,30 @@ export default function App() {
 
     return (
       <div className="min-h-screen bg-transparent text-white font-sans flex flex-col items-center p-6 w-full max-w-7xl mx-auto">
-        {/* Global Notification Balloon */}
-        {notification && (
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] animate-bounce">
-            <div className="bg-[#00e5ff] text-black px-8 py-3 rounded-md font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(0,229,255,0.6)] flex items-center gap-3 border border-white/50 backdrop-blur-md">
-              <div className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
-              </div>
-              {notification}
-            </div>
-          </div>
-        )}
+        {renderNotificationBalloon()}
+        {renderAddSolicitacaoModal()}
         <div className="w-full border-b border-gray-800 pb-4 mb-10 flex justify-between items-center bg-black/40 backdrop-blur-md px-6 rounded">
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => setCurrentView('catalog')}>
             <img src="/logo.png" alt="Logo" className="w-12 h-12 rounded-full border-2 border-[#00e5ff]" />
           </div>
-          <button onClick={() => setCurrentView('catalog')} className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors">
-            VOLTAR AO CATÁLOGO
-          </button>
+          <nav className="flex items-center gap-6 text-xs font-bold tracking-wider text-gray-400">
+            <button onClick={() => setCurrentView('catalog')} className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors">
+              VOLTAR AO CATÁLOGO
+            </button>
+            <button 
+              onClick={() => {
+                if(!isLoggedIn) {
+                  alert("Por favor, faça login para fazer um pedido!");
+                  setCurrentView('login');
+                } else {
+                  setIsAddingSolicitacao(true);
+                }
+              }} 
+              className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors"
+            >
+              PEDIDO
+            </button>
+          </nav>
         </div>
 
         <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight mb-10 text-left w-full">
@@ -1211,18 +1345,8 @@ export default function App() {
   if (currentView === 'admin') {
     return (
       <div className="min-h-screen bg-transparent text-white font-sans flex flex-col">
-        {/* Global Notification Balloon */}
-        {notification && (
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] animate-bounce">
-            <div className="bg-[#00e5ff] text-black px-8 py-3 rounded-md font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(0,229,255,0.6)] flex items-center gap-3 border border-white/50 backdrop-blur-md">
-              <div className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
-              </div>
-              {notification}
-            </div>
-          </div>
-        )}
+        {renderNotificationBalloon()}
+        {renderAddSolicitacaoModal()}
         {/* Admin Header */}
         <header className="border-b border-gray-800 bg-black/40 backdrop-blur-md px-6 py-4 flex items-center justify-between sticky top-0 z-10">
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => setCurrentView('catalog')}>
@@ -1234,17 +1358,27 @@ export default function App() {
           </div>
           <nav className="flex items-center gap-6 text-xs font-bold tracking-wider text-gray-400">
             <button onClick={() => setCurrentView('catalog')} className="hover:text-white transition-colors uppercase">CATÁLOGO</button>
+            <button 
+              onClick={() => {
+                if(!isLoggedIn) {
+                  alert("Por favor, faça login para fazer um pedido!");
+                  setCurrentView('login');
+                } else {
+                  setIsAddingSolicitacao(true);
+                }
+              }} 
+              className="hover:text-white transition-colors uppercase font-bold text-[#00e5ff]"
+            >
+              PEDIDO
+            </button>
             <div className="flex items-center gap-2 text-[#ff6b00] uppercase">
               <Shield size={16} />
               ADMIN
             </div>
-            <div className="flex items-center gap-2 hover:text-white transition-colors uppercase cursor-pointer">
-              <User size={16} />
-              PEDIDOS
-            </div>
             <button
               onClick={handleLogout}
               className="hover:text-white transition-colors"
+              title="Sair"
             >
               <LogOut size={16} />
             </button>
@@ -1298,6 +1432,17 @@ export default function App() {
               className={`flex items-center gap-2 cursor-pointer transition-colors ${adminActiveTab === 'consoles' ? 'text-white' : 'hover:text-white'}`}
             >
               <Gamepad2 size={16} /> CONSOLES ({consolesList.length})
+            </div>
+            <div
+              onClick={() => setAdminActiveTab('solicitacoes')}
+              className={`flex items-center gap-2 cursor-pointer transition-colors ${adminActiveTab === 'solicitacoes' ? 'text-white' : 'hover:text-white'}`}
+            >
+              <FilePlus size={16} /> SOLICITAÇÕES ({solicitacoesList.length})
+              {solicitacoesList.filter(s => s.status === 'PENDENTE').length > 0 && (
+                <span className="bg-[#ff6b00] text-white text-[10px] rounded w-4 h-4 flex items-center justify-center font-sans font-bold ml-1">
+                  {solicitacoesList.filter(s => s.status === 'PENDENTE').length}
+                </span>
+              )}
             </div>
           </div>
 
@@ -1429,6 +1574,77 @@ export default function App() {
               </div>
             </div>
            )}
+
+          {adminActiveTab === 'solicitacoes' && (
+            <div className="space-y-6">
+               <h2 className="text-xl font-black uppercase text-white flex items-center gap-2">
+                 <FilePlus className="text-[#ff6b00]" /> GESTÃO DE ENCOMENDAS
+               </h2>
+               
+               <div className="grid grid-cols-1 gap-4">
+                 {solicitacoesList.length === 0 ? (
+                   <p className="text-gray-500 font-mono text-sm py-10 text-center border border-dashed border-gray-800 rounded">Nenhuma encomenda pendente.</p>
+                 ) : (
+                   solicitacoesList.map((sol) => (
+                     <div key={sol.id} className="bg-black border border-gray-800 rounded p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-gray-600 transition-colors">
+                       <div>
+                         <div className="flex items-center gap-3 mb-1">
+                           <span className="text-xs font-mono text-gray-500 italic">#{sol.id}</span>
+                           <span className={`text-[10px] font-black px-2 py-0.5 rounded ${
+                             sol.status === 'ACEITO' ? 'bg-[#00ff44]/20 text-[#00ff44]' : 
+                             sol.status === 'REJEITADO' ? 'bg-red-500/20 text-red-500' : 
+                             'bg-orange-500/20 text-orange-400'
+                           }`}>
+                             {sol.status}
+                           </span>
+                         </div>
+                         <h3 className="text-lg font-black uppercase text-white">{sol.game_name}</h3>
+                         <p className="text-xs text-gray-400 font-mono">PLATAFORMA: <span className="text-[#00e5ff]">{sol.platform}</span></p>
+                         <p className="text-[10px] text-gray-500 uppercase mt-1">CLIENTE: {sol.client_email}</p>
+                       </div>
+                       
+                       <div className="flex items-center gap-2">
+                         {sol.status === 'PENDENTE' && (
+                           <>
+                             <button
+                               onClick={async () => {
+                                 const { error } = await supabase.from('solicitacoes').update({ status: 'ACEITO' }).eq('id', sol.id);
+                                 if (error) alert(error.message);
+                               }}
+                               className="bg-green-600 text-white p-2 rounded hover:bg-green-500 transition-colors"
+                               title="Aceitar Pedido"
+                             >
+                               <CheckCircle2 size={18} />
+                             </button>
+                             <button
+                               onClick={async () => {
+                                 const { error } = await supabase.from('solicitacoes').update({ status: 'REJEITADO' }).eq('id', sol.id);
+                                 if (error) alert(error.message);
+                               }}
+                               className="bg-red-600 text-white p-2 rounded hover:bg-red-500 transition-colors"
+                               title="Rejeitar Pedido"
+                             >
+                               <XCircle size={18} />
+                             </button>
+                           </>
+                         )}
+                         <button
+                           onClick={async () => {
+                             if (confirm("Excluir registro permanentemente?")) {
+                               await supabase.from('solicitacoes').delete().eq('id', sol.id);
+                             }
+                           }}
+                           className="text-gray-500 hover:text-red-500 p-2 transition-colors"
+                         >
+                           <Trash2 size={18} />
+                         </button>
+                       </div>
+                     </div>
+                   ))
+                 )}
+               </div>
+            </div>
+          )}
 
           {adminActiveTab === 'consoles' && (
             <div className="space-y-6">
@@ -2285,6 +2501,19 @@ export default function App() {
           </div>
           <nav className="flex items-center gap-6 text-xs font-bold tracking-wider text-gray-400">
             <button onClick={() => setCurrentView('catalog')} className="text-white transition-colors uppercase">CATÁLOGO</button>
+            <button 
+              onClick={() => {
+                if(!isLoggedIn) {
+                  alert("Por favor, faça login para fazer um pedido!");
+                  setCurrentView('login');
+                } else {
+                  setIsAddingSolicitacao(true);
+                }
+              }} 
+              className="hover:text-white transition-colors uppercase font-bold text-[#00e5ff]"
+            >
+              PEDIDO
+            </button>
             {!isLoggedIn ? (
               <button onClick={() => setCurrentView('login')} className="flex items-center gap-2 hover:text-white transition-colors uppercase">
                 <User size={16} />
@@ -2413,19 +2642,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-transparent text-white font-sans">
-      {/* Global Notification Balloon */}
-      {notification && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] animate-bounce">
-          <div className="bg-[#00e5ff] text-black px-8 py-3 rounded-md font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(0,229,255,0.6)] flex items-center gap-3 border border-white/50 backdrop-blur-md">
-            <div className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
-            </div>
-            {notification}
-          </div>
-        </div>
-      )}
-      {/* Header */}
+      {renderNotificationBalloon()}
+      {renderAddSolicitacaoModal()}
+      
       <header className="border-b border-gray-800 bg-black/50 backdrop-blur-md px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-4 cursor-pointer" onClick={() => setCurrentView('catalog')}>
           <img
@@ -2436,6 +2655,19 @@ export default function App() {
         </div>
         <nav className="flex items-center gap-6 text-xs font-bold tracking-wider text-gray-400">
           <button onClick={() => setCurrentView('catalog')} className="hover:text-white transition-colors uppercase">CATÁLOGO</button>
+          <button 
+            onClick={() => {
+              if(!isLoggedIn) {
+                alert("Por favor, faça login para fazer um pedido!");
+                setCurrentView('login');
+              } else {
+                setIsAddingSolicitacao(true);
+              }
+            }} 
+            className="hover:text-white transition-colors uppercase font-bold text-[#00e5ff]"
+          >
+            PEDIDO
+          </button>
           {!isLoggedIn ? (
             <button onClick={() => setCurrentView('login')} className="flex items-center gap-2 hover:text-white transition-colors uppercase">
               <User size={16} />

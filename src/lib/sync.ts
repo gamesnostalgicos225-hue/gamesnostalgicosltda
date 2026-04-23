@@ -61,3 +61,9 @@ export const getUsers = async () => {
   if (error) throw error;
   return data;
 };
+
+export const getSolicitacoes = async () => {
+  const { data, error } = await supabase.from('solicitacoes').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+};
