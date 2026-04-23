@@ -1186,7 +1186,8 @@ export default function App() {
             <img
               src="/logo.png"
               alt="Games Nostálgicos"
-              className="w-24 h-24 rounded-full border-4 border-[#00e5ff] shadow-[0_0_15px_rgba(0,229,255,0.5)] object-cover bg-white mb-6"
+              onClick={() => setCurrentView('catalog')}
+              className="w-24 h-24 rounded-full border-4 border-[#00e5ff] shadow-[0_0_15px_rgba(0,229,255,0.5)] object-cover bg-white mb-6 cursor-pointer hover:scale-105 transition-transform"
             />
             <h1 className="text-4xl font-black uppercase tracking-tight mb-2">LOGIN</h1>
             <p className="text-gray-400 font-mono text-sm">Games Nostálgicos</p>
@@ -1253,7 +1254,8 @@ export default function App() {
             <img
               src="/logo.png"
               alt="Games Nostálgicos"
-              className="w-24 h-24 rounded-full border-4 border-[#00e5ff] shadow-[0_0_15px_rgba(0,229,255,0.5)] object-cover bg-white mb-6"
+              onClick={() => setCurrentView('catalog')}
+              className="w-24 h-24 rounded-full border-4 border-[#00e5ff] shadow-[0_0_15px_rgba(0,229,255,0.5)] object-cover bg-white mb-6 cursor-pointer hover:scale-105 transition-transform"
             />
             <h1 className="text-4xl font-black uppercase tracking-tight mb-2">CADASTRO</h1>
             <p className="text-gray-400 font-mono text-sm">Games Nostálgicos</p>
