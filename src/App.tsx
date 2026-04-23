@@ -99,6 +99,9 @@ export default function App() {
   const [adminGameSearch, setAdminGameSearch] = useState('');
   const [adminGameFilter, setAdminGameFilter] = useState('TODOS');
   
+  const [isAddingUser, setIsAddingUser] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
+
   const [accountNewPassword, setAccountNewPassword] = useState('');
   const [accountConfirmPassword, setAccountConfirmPassword] = useState('');
   const [showAccountNewPassword, setShowAccountNewPassword] = useState(false);
@@ -1335,7 +1338,10 @@ export default function App() {
 
           {adminActiveTab === 'usuarios' && (
             <div className="space-y-6">
-              <button className="bg-[#00e5ff] text-black font-black uppercase py-2.5 px-6 rounded flex items-center gap-2 hover:bg-cyan-400 transition-colors text-sm tracking-wider">
+              <button 
+                onClick={() => setIsAddingUser(true)}
+                className="bg-[#00e5ff] text-black font-black uppercase py-2.5 px-6 rounded flex items-center gap-2 hover:bg-cyan-400 transition-colors text-sm tracking-wider"
+              >
                 <Plus size={18} strokeWidth={3} /> ADICIONAR USUÁRIO
               </button>
 
@@ -1376,7 +1382,8 @@ export default function App() {
                         <button
                           onClick={async () => {
                             const newStatus = (user.status || 'ATIVO') === 'ATIVO' ? 'INATIVO' : 'ATIVO';
-                            await supabase.from('users').update({ status: newStatus }).eq('id', user.id);
+                            const { error } = await supabase.from('users').update({ status: newStatus }).eq('id', user.id);
+                            if (error) alert(`Erro ao alterar status: ${error.message}`);
                           }}
                           className={`py-1.5 px-3 flex items-center justify-center gap-2 rounded border transition-colors text-[10px] font-bold uppercase shadow-[0_0_10px_rgba(0,0,0,0.5)] ${(user.status || 'ATIVO') === 'INATIVO'
                             ? 'border-[#00ff44] text-[#00ff44] hover:bg-[#00ff44]/10 hover:shadow-[0_0_15px_rgba(0,255,68,0.2)]'
@@ -1386,15 +1393,16 @@ export default function App() {
                           {(user.status || 'ATIVO') === 'INATIVO' ? 'Reativar' : 'Bloquear'}
                         </button>
                         <button
-                          className="py-1.5 px-3 flex items-center justify-center gap-2 rounded border border-[#00e5ff] text-[#00e5ff] hover:bg-[#00e5ff]/10 hover:shadow-[0_0_15px_rgba(0,229,255,0.2)] transition-colors text-[10px] font-bold uppercase cursor-not-allowed opacity-50"
-                          title="Funcionalidade em breve"
+                          onClick={() => setEditingUser(user)}
+                          className="py-1.5 px-3 flex items-center justify-center gap-2 rounded border border-[#00e5ff] text-[#00e5ff] hover:bg-[#00e5ff]/10 hover:shadow-[0_0_15px_rgba(0,229,255,0.2)] transition-colors text-[10px] font-bold uppercase"
                         >
                           <Edit size={12} /> Editar
                         </button>
                         <button
                           onClick={async () => {
                             if (window.confirm(`Tem certeza que deseja excluir o usuário "${user.name}"?`)) {
-                              await supabase.from('users').delete().eq('id', user.id);
+                              const { error } = await supabase.from('users').delete().eq('id', user.id);
+                              if (error) alert(`Erro ao excluir usuário: ${error.message}`);
                             }
                           }}
                           className="py-1.5 px-3 flex items-center justify-center gap-2 rounded border border-[#ff6b00] text-[#ff6b00] hover:bg-[#ff6b00]/10 hover:shadow-[0_0_15px_rgba(255,107,0,0.2)] transition-colors text-[10px] font-bold uppercase"
@@ -1489,7 +1497,8 @@ export default function App() {
                         </button>
                         <button
                           onClick={async () => {
-                            await supabase.from('pedidos').update({ status: 'PAGO' }).eq('id', pedido.id);
+                            const { error } = await supabase.from('pedidos').update({ status: 'PAGO' }).eq('id', pedido.id);
+                            if (error) alert(`Erro ao confirmar pedido: ${error.message}`);
                           }}
                           className={`py-1.5 px-3 flex items-center justify-center gap-2 rounded border transition-colors text-[10px] font-bold uppercase ${
                             pedido.status === 'PAGO' 
@@ -1502,7 +1511,8 @@ export default function App() {
                         <button
                           onClick={async () => {
                             if (window.confirm(`Tem certeza que deseja recusar o pedido #${pedido.orderNumber}?`)) {
-                              await supabase.from('pedidos').update({ status: 'RECUSADO' }).eq('id', pedido.id);
+                              const { error } = await supabase.from('pedidos').update({ status: 'RECUSADO' }).eq('id', pedido.id);
+                              if (error) alert(`Erro ao recusar pedido: ${error.message}`);
                             }
                           }}
                           className={`py-1.5 px-3 flex items-center justify-center gap-2 rounded border transition-colors text-[10px] font-bold uppercase ${
@@ -1964,6 +1974,118 @@ export default function App() {
             </div>
           </div>
         )}
+        
+        {/* Modal Adicionar Usuário */}
+        {isAddingUser && (
+          <div className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-[#0a0a0a] border border-[#00e5ff] rounded shadow-[0_0_50px_rgba(0,229,255,0.2)] w-full max-w-lg relative my-auto">
+              <div className="flex justify-between items-center p-6 border-b border-gray-800">
+                <h2 className="text-white font-black uppercase tracking-tighter text-xl">ADICIONAR NOME USUÁRIO</h2>
+                <button onClick={() => setIsAddingUser(false)} className="text-gray-400 hover:text-white transition-colors">
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <form 
+                className="p-6 space-y-5"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const form = e.currentTarget;
+                  const newUser = {
+                    name: (form.elements.namedItem('name') as HTMLInputElement).value,
+                    email: (form.elements.namedItem('email') as HTMLInputElement).value,
+                    password_hash: (form.elements.namedItem('password') as HTMLInputElement).value,
+                    role: (form.elements.namedItem('role') as HTMLSelectElement).value,
+                    status: 'ATIVO',
+                    registered_at: new Date().toLocaleDateString('pt-BR')
+                  };
+                  supabase.from('users').insert(newUser).then(({ error }) => {
+                    if (error) alert(`Erro ao adicionar usuário: ${error.message}`);
+                    else setIsAddingUser(false);
+                  });
+                }}
+              >
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">NOME</label>
+                  <input type="text" name="name" required className="w-full bg-black border border-gray-800 rounded px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-colors text-white font-sans" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">E-MAIL</label>
+                  <input type="email" name="email" required className="w-full bg-black border border-gray-800 rounded px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-colors text-white font-sans" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">SENHA</label>
+                  <input type="password" name="password" required className="w-full bg-black border border-gray-800 rounded px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-colors text-white font-sans" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">PAPEL</label>
+                  <select name="role" required className="w-full bg-black border border-gray-800 rounded px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-colors text-white font-sans appearance-none">
+                    <option value="CLIENTE">CLIENTE</option>
+                    <option value="ADMIN">ADMINISTRADOR</option>
+                  </select>
+                </div>
+                <div className="pt-4 mt-8 border-t border-gray-800">
+                  <button type="submit" className="w-full bg-[#00e5ff] text-black font-black uppercase py-4 rounded hover:bg-cyan-400 transition-colors tracking-wider text-sm shadow-[0_0_15px_rgba(0,229,255,0.3)]">
+                    CADASTRAR USUÁRIO
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Editar Usuário */}
+        {editingUser && (
+          <div className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-[#0a0a0a] border border-[#00e5ff] rounded shadow-[0_0_50px_rgba(0,229,255,0.2)] w-full max-w-lg relative my-auto">
+              <div className="flex justify-between items-center p-6 border-b border-gray-800">
+                <h2 className="text-white font-black uppercase tracking-tighter text-xl">EDITAR USUÁRIO</h2>
+                <button onClick={() => setEditingUser(null)} className="text-gray-400 hover:text-white transition-colors">
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <form 
+                className="p-6 space-y-5"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const form = e.currentTarget;
+                  const updatedUser = {
+                    name: (form.elements.namedItem('name') as HTMLInputElement).value,
+                    email: (form.elements.namedItem('email') as HTMLInputElement).value,
+                    role: (form.elements.namedItem('role') as HTMLSelectElement).value,
+                  };
+                  supabase.from('users').update(updatedUser).eq('id', editingUser.id).then(({ error }) => {
+                    if (error) alert(`Erro ao atualizar usuário: ${error.message}`);
+                    else setEditingUser(null);
+                  });
+                }}
+              >
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">NOME</label>
+                  <input type="text" name="name" defaultValue={editingUser.name} required className="w-full bg-black border border-gray-800 rounded px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-colors text-white font-sans" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">E-MAIL</label>
+                  <input type="email" name="email" defaultValue={editingUser.email} required className="w-full bg-black border border-gray-800 rounded px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-colors text-white font-sans" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">PAPEL</label>
+                  <select name="role" defaultValue={editingUser.role} required className="w-full bg-black border border-gray-800 rounded px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-colors text-white font-sans appearance-none">
+                    <option value="CLIENTE">CLIENTE</option>
+                    <option value="ADMIN">ADMINISTRADOR</option>
+                  </select>
+                </div>
+                <div className="pt-4 mt-8 border-t border-gray-800">
+                  <button type="submit" className="w-full bg-[#00e5ff] text-black font-black uppercase py-4 rounded hover:bg-cyan-400 transition-colors tracking-wider text-sm shadow-[0_0_15px_rgba(0,229,255,0.3)]">
+                    SALVAR ALTERAÇÕES
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {renderChatModal()}
       </div>
     );
