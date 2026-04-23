@@ -610,22 +610,18 @@ export default function App() {
       const orderNumberHex = Math.random().toString(16).slice(2, 10).toUpperCase();
 
       try {
-        const res = await fetch('http://localhost:3001/api/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const { data, error } = await supabase.functions.invoke('checkout', {
+          body: {
             total: totalAmount,
             clientEmail: loggedInEmail || emailInput || 'cliente@site.com',
             orderNumber: orderNumberHex,
             items: cartItems.map(i => ({ ...i, name: i.title })),
             payerInfo: { name: checkoutData.nome, cpf: checkoutData.cpf }
-          })
+          }
         });
 
-        const data = await res.json();
-
-        if (!res.ok) {
-           alert(`Mercado Pago retornou um Erro!\n\nMotivo: ${data.details || data.error || 'Desconhecido'}\n\nVerifique as Credenciais PIX no .env`);
+        if (error || data?.error) {
+           alert(`Mercado Pago retornou um Erro!\n\nMotivo: ${data?.error || data?.details || error?.message || 'Desconhecido'}\n\nVerifique as Credenciais PIX no Env do Supabase Edge Functions`);
            return;
         }
         
@@ -637,8 +633,8 @@ export default function App() {
         }
 
       } catch (err) {
-        console.error('Falha de conexão com o painel PIX:', err);
-        alert('Erro de conexão com o Mercado Pago. O servidor (server.js) está rodando localmente?');
+        console.error('Falha de conexão com a Edge Function:', err);
+        alert('Erro de conexão! Verifique se a sua conta não está bloqueando requisições ou se o código tem um erro.');
       } finally {
         setIsProcessingPIX(false);
       }
