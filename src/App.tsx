@@ -184,8 +184,8 @@ export default function App() {
             // Admin vê todas. Cliente vê apenas se o pedido_id pertence a um pedido dele.
             const { data: pedido } = await supabase.from('pedidos').select('client_email').eq('id', payload.new.pedido_id).single();
             
-            if (currentIsAdmin || (pedido && pedido.client_email === currentEmail)) {
-               setNotification("Você tem mensagem a ser lida!");
+            if (currentIsAdmin || (normalizedMyEmail && normalizedClientEmail === normalizedMyEmail)) {
+               setNotification("Você tem mensagem a ser lida");
                setTimeout(() => setNotification(null), 5000);
             }
           }
@@ -900,6 +900,18 @@ export default function App() {
 
     return (
       <div className="min-h-screen bg-transparent text-white font-sans flex flex-col items-center p-6 w-full max-w-7xl mx-auto">
+        {/* Global Notification Balloon */}
+        {notification && (
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] animate-bounce">
+            <div className="bg-[#00e5ff] text-black px-8 py-3 rounded-md font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(0,229,255,0.6)] flex items-center gap-3 border border-white/50 backdrop-blur-md">
+              <div className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+              </div>
+              {notification}
+            </div>
+          </div>
+        )}
         <div className="w-full border-b border-gray-800 pb-4 mb-10 flex justify-between items-center bg-black/40 backdrop-blur-md px-6 rounded">
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => setCurrentView('catalog')}>
             <img src="/logo.png" alt="Logo" className="w-12 h-12 rounded-full border-2 border-[#00e5ff]" />
@@ -1196,6 +1208,18 @@ export default function App() {
   if (currentView === 'admin') {
     return (
       <div className="min-h-screen bg-transparent text-white font-sans flex flex-col">
+        {/* Global Notification Balloon */}
+        {notification && (
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] animate-bounce">
+            <div className="bg-[#00e5ff] text-black px-8 py-3 rounded-md font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(0,229,255,0.6)] flex items-center gap-3 border border-white/50 backdrop-blur-md">
+              <div className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+              </div>
+              {notification}
+            </div>
+          </div>
+        )}
         {/* Admin Header */}
         <header className="border-b border-gray-800 bg-black/40 backdrop-blur-md px-6 py-4 flex items-center justify-between sticky top-0 z-10">
           <div className="flex items-center gap-4 cursor-pointer" onClick={() => setCurrentView('catalog')}>
@@ -2386,6 +2410,18 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-transparent text-white font-sans">
+      {/* Global Notification Balloon */}
+      {notification && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] animate-bounce">
+          <div className="bg-[#00e5ff] text-black px-8 py-3 rounded-md font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(0,229,255,0.6)] flex items-center gap-3 border border-white/50 backdrop-blur-md">
+            <div className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+            </div>
+            {notification}
+          </div>
+        </div>
+      )}
       {/* Header */}
       <header className="border-b border-gray-800 bg-black/50 backdrop-blur-md px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-4 cursor-pointer" onClick={() => setCurrentView('catalog')}>
