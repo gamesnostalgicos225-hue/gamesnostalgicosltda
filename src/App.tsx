@@ -99,6 +99,8 @@ export default function App() {
   const [adminGameSearch, setAdminGameSearch] = useState('');
   const [adminGameFilter, setAdminGameFilter] = useState('TODOS');
   
+  const [nameInput, setNameInput] = useState('');
+  
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
 
@@ -314,9 +316,16 @@ export default function App() {
     setCurrentView('cart');
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const email = emailInput.trim().toLowerCase();
-    if (email === 'admin@gamesnostalgicos.com' && passwordInput.trim() === 'administrador123') {
+    const pass = passwordInput.trim();
+    if (!email || !pass) {
+      alert("Preencha email e senha!");
+      return;
+    }
+    
+    // Hardcoded admin escape hatch
+    if (email === 'admin@gamesnostalgicos.com' && pass === 'administrador123') {
       setIsLoggedIn(true);
       setIsAdmin(true);
       setLoggedInEmail(email);
@@ -324,16 +333,35 @@ export default function App() {
       localStorage.setItem('isAdmin', 'true');
       localStorage.setItem('loggedInEmail', email);
       setCurrentView('admin');
-    } else if (email) {
-      setIsLoggedIn(true);
-      setIsAdmin(false);
-      setLoggedInEmail(email);
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('isAdmin', 'false');
-      localStorage.setItem('loggedInEmail', email);
-      setCurrentView('catalog');
+      return;
     }
+
+    const { data: user, error } = await supabase.from('users').select('*').eq('email', email).single();
+    
+    if (error || !user) {
+      alert("Usuário não encontrado!");
+      return;
+    }
+
+    if (user.password_hash !== pass) {
+      alert("Senha incorreta!");
+      return;
+    }
+
+    if (user.status !== 'ATIVO') {
+      alert("Sua conta está bloqueada ou inativa.");
+      return;
+    }
+
+    setIsLoggedIn(true);
+    setIsAdmin(user.role === 'ADMIN');
+    setLoggedInEmail(email);
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('isAdmin', String(user.role === 'ADMIN'));
+    localStorage.setItem('loggedInEmail', email);
+    setCurrentView(user.role === 'ADMIN' ? 'admin' : 'catalog');
   };
+
 
   const handleChangePassword = () => {
     if (!accountNewPassword || !accountConfirmPassword) {
@@ -991,6 +1019,8 @@ export default function App() {
               <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">NOME</label>
               <input
                 type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
                 className="w-full bg-black border border-gray-800 rounded-md px-4 py-3 text-sm focus:outline-none focus:border-gray-500 transition-colors"
               />
             </div>
@@ -999,6 +1029,8 @@ export default function App() {
               <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">EMAIL</label>
               <input
                 type="email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
                 className="w-full bg-black border border-gray-800 rounded-md px-4 py-3 text-sm focus:outline-none focus:border-gray-500 transition-colors"
               />
             </div>
@@ -1008,6 +1040,8 @@ export default function App() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
                   className="w-full bg-black border border-gray-800 rounded-md px-4 py-3 text-sm focus:outline-none focus:border-gray-500 transition-colors pr-10"
                 />
                 <button
@@ -1021,9 +1055,38 @@ export default function App() {
             </div>
 
             <button
-              onClick={() => {
+              onClick={async () => {
+                const name = nameInput.trim();
+                const email = emailInput.trim().toLowerCase();
+                const pass = passwordInput.trim();
+                if (!name || !email || !pass) { 
+                  alert("Preencha todos os campos!"); 
+                  return; 
+                }
+                
+                const newUser = {
+                  name: name,
+                  email: email,
+                  password_hash: pass,
+                  role: 'CLIENTE',
+                  status: 'ATIVO',
+                  registered_at: new Date().toLocaleDateString('pt-BR')
+                };
+                
+                const { error } = await supabase.from('users').insert(newUser);
+                if (error) {
+                  alert("Erro no cadastro: " + error.message);
+                  return;
+                }
+                
                 setIsLoggedIn(true);
+                setIsAdmin(false);
+                setLoggedInEmail(email);
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('isAdmin', 'false');
+                localStorage.setItem('loggedInEmail', email);
                 setCurrentView('catalog');
+                alert("Cadastro realizado com sucesso!");
               }}
               className="w-full bg-[#00e5ff] text-black font-black uppercase py-3.5 rounded-md hover:bg-cyan-400 transition-colors mt-8 tracking-wider"
             >
