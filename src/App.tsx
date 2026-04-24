@@ -458,6 +458,13 @@ export default function App() {
 
   const handleBuyClick = (gameObj: any, goToCart: boolean = false) => {
     if (!gameObj || !gameObj.id) return;
+    
+    if (!isLoggedIn) {
+      alert("Por favor, faça login para adicionar itens ao carrinho.");
+      setCurrentView('login');
+      return;
+    }
+
     setCartItems(prev => {
       const existing = prev.find(item => item.id === gameObj.id);
       if (existing) {
