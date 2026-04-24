@@ -2811,9 +2811,10 @@ export default function App() {
 
                 <button
                   onClick={(e) => { e.stopPropagation(); handleBuyClick(game); }}
-                  className="w-full bg-[#00e5ff] text-black text-xs font-black uppercase py-2.5 rounded hover:bg-cyan-400 transition-colors"
+                  className="w-full bg-[#00e5ff] text-black text-[10px] sm:text-xs font-black uppercase py-2.5 rounded hover:bg-cyan-400 transition-colors flex justify-center items-center gap-2"
                 >
-                  COMPRAR
+                  <ShoppingCart size={14} strokeWidth={2.5} />
+                  ADICIONAR AO CARRINHO
                 </button>
               </div>
             </div>
