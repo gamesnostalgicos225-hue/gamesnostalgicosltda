@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
-import { getGames, getConsoles, getPedidos, getUsers, getSolicitacoes } from './lib/sync';
+import { getGames, getConsoles, getPedidos, getUsers, getSolicitacoes, syncToCloud, loadFromCloud } from './lib/sync';
 import { Search, Filter, User, ShoppingCart, Eye, EyeOff, Shield, LogOut, Package, Users, Gamepad2, CheckCircle2, XCircle, MessageCircle, Plus, Edit, Trash2, X, DownloadCloud, Send, FilePlus } from 'lucide-react';
 
 // Games list convertida para State dentro do App.tsx
@@ -166,6 +166,7 @@ export default function App() {
   }, [loggedInEmail]);
 
   const [cartItems, setCartItems] = useState<any[]>(() => {
+    // Initial local fallback
     const email = localStorage.getItem('loggedInEmail') || '';
     const key = email ? `cartItems_${email}` : 'cartItems';
     const saved = localStorage.getItem(key);
@@ -241,17 +242,51 @@ export default function App() {
     if (prevEmailRef.current === loggedInEmail) {
       const key = loggedInEmail ? `cartItems_${loggedInEmail}` : 'cartItems';
       localStorage.setItem(key, JSON.stringify(cartItems));
+      
+      if (loggedInEmail) {
+        syncToCloud(key, cartItems).catch(err => console.error("Erro sincronizando carrinho", err));
+      }
     }
   }, [cartItems, loggedInEmail]);
 
   useEffect(() => {
-    if (prevEmailRef.current !== loggedInEmail) {
-      const key = loggedInEmail ? `cartItems_${loggedInEmail}` : 'cartItems';
-      const saved = localStorage.getItem(key);
-      setCartItems(saved ? JSON.parse(saved) : []);
-      prevEmailRef.current = loggedInEmail;
-    }
+    const syncCart = async () => {
+      if (prevEmailRef.current !== loggedInEmail) {
+        const key = loggedInEmail ? `cartItems_${loggedInEmail}` : 'cartItems';
+        
+        // try local first for instant feedback
+        const saved = localStorage.getItem(key);
+        if (saved) setCartItems(JSON.parse(saved));
+        else setCartItems([]);
+
+        // fetch cloud config
+        if (loggedInEmail) {
+          const cloudSaved = await loadFromCloud(key);
+          if (cloudSaved) {
+            setCartItems(cloudSaved);
+            localStorage.setItem(key, JSON.stringify(cloudSaved));
+          }
+        }
+        
+        prevEmailRef.current = loggedInEmail;
+      }
+    };
+    syncCart();
   }, [loggedInEmail]);
+
+  // Initial cloud sync independently, after mount if already logged in
+  useEffect(() => {
+    const initialSync = async () => {
+      if (loggedInEmail) {
+        const key = `cartItems_${loggedInEmail}`;
+        const cloudSaved = await loadFromCloud(key);
+        if (cloudSaved) {
+          setCartItems(cloudSaved);
+        }
+      }
+    };
+    initialSync();
+  }, []); // run once
 
   const [usersList, setUsersList] = useState<any[]>([]);
 
