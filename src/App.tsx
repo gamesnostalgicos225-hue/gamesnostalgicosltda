@@ -133,6 +133,7 @@ export default function App() {
       client_email: loggedInEmail || emailInput,
       game_name: newRequestGameName,
       platform: newRequestPlatform,
+      image_url: newRequestImage,
       status: 'PENDENTE'
     });
 
@@ -143,6 +144,7 @@ export default function App() {
       setIsAddingSolicitacao(false);
       setNewRequestGameName('');
       setNewRequestPlatform('');
+      setNewRequestImage('');
     }
   };
   
@@ -153,6 +155,7 @@ export default function App() {
   const [isAddingSolicitacao, setIsAddingSolicitacao] = useState(false);
   const [newRequestGameName, setNewRequestGameName] = useState('');
   const [newRequestPlatform, setNewRequestPlatform] = useState('');
+  const [newRequestImage, setNewRequestImage] = useState('');
 
   const isAdminRef = React.useRef(isAdmin);
   const loggedInEmailRef = React.useRef(loggedInEmail);
@@ -349,6 +352,21 @@ export default function App() {
                 <option value="PC">PC</option>
                 <option value="DREAMCAST">DREAMCAST</option>
               </select>
+            </div>
+            <div className="flex flex-col">
+              <label className="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest">LINK DA IMAGEM DO JOGO (OPCIONAL)</label>
+              <input
+                type="url"
+                value={newRequestImage}
+                onChange={(e) => setNewRequestImage(e.target.value)}
+                placeholder="Ex: https://exemplo.com/imagem.png"
+                className="bg-black border border-gray-800 rounded px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-all text-white placeholder:text-gray-700 mb-2"
+              />
+              {newRequestImage && (
+                <div className="w-full h-32 rounded overflow-hidden border border-gray-800 bg-gray-900 mx-auto text-center flex items-center justify-center">
+                   <img src={newRequestImage} alt="Preview" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} onLoad={(e) => { (e.target as HTMLImageElement).style.display = 'block'; }} />
+                </div>
+              )}
             </div>
             <button
               type="submit"
@@ -1643,8 +1661,12 @@ export default function App() {
                  ) : (
                    solicitacoesList.map((sol) => (
                      <div key={sol.id} className="bg-black border border-gray-800 rounded p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-gray-600 transition-colors">
-                       <div>
-                         <div className="flex items-center gap-3 mb-1">
+                       <div className="flex items-start md:items-center gap-4">
+                         {sol.image_url && (
+                           <img src={sol.image_url} alt="Capa" className="w-16 h-16 object-cover rounded border border-gray-800 shadow-md shrink-0 bg-gray-900" />
+                         )}
+                         <div>
+                           <div className="flex items-center gap-3 mb-1">
                            <span className="text-xs font-mono text-gray-500 italic">#{sol.id}</span>
                            <span className={`text-[10px] font-black px-2 py-0.5 rounded ${
                              sol.status === 'ACEITO' ? 'bg-[#00ff44]/20 text-[#00ff44]' : 
