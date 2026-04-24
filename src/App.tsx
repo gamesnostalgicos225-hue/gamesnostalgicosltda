@@ -456,7 +456,7 @@ export default function App() {
     return matchesSearch && matchesFilter;
   });
 
-  const handleBuyClick = (gameObj: any) => {
+  const handleBuyClick = (gameObj: any, goToCart: boolean = false) => {
     if (!gameObj || !gameObj.id) return;
     setCartItems(prev => {
       const existing = prev.find(item => item.id === gameObj.id);
@@ -472,7 +472,9 @@ export default function App() {
         qty: 1
       }];
     });
-    setCurrentView('cart');
+    if (goToCart) {
+      setCurrentView('cart');
+    }
   };
 
   const handleLogin = async () => {
@@ -2631,14 +2633,14 @@ export default function App() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <button
-                    onClick={() => handleBuyClick(selectedGame)}
+                    onClick={() => handleBuyClick(selectedGame, false)}
                     className="w-full bg-[#00e5ff] text-black font-black uppercase py-4 px-6 rounded hover:bg-cyan-300 transition-colors tracking-widest text-sm flex justify-center items-center gap-3 shadow-[0_0_20px_rgba(0,229,255,0.4)]"
                   >
                     <ShoppingCart size={20} strokeWidth={3} />
                     ADICIONAR AO CARRINHO
                   </button>
                   <button
-                    onClick={() => handleBuyClick(selectedGame)}
+                    onClick={() => handleBuyClick(selectedGame, true)}
                     className="w-full bg-[#00e5ff] text-black font-black uppercase py-4 px-6 rounded hover:bg-cyan-300 transition-colors tracking-widest text-sm shadow-[0_0_20px_rgba(0,229,255,0.4)]"
                   >
                     IR PARA O CARRINHO
@@ -2810,7 +2812,7 @@ export default function App() {
                 </div>
 
                 <button
-                  onClick={(e) => { e.stopPropagation(); handleBuyClick(game); }}
+                  onClick={(e) => { e.stopPropagation(); handleBuyClick(game, false); }}
                   className="w-full bg-[#00e5ff] text-black text-[10px] sm:text-xs font-black uppercase py-2.5 rounded hover:bg-cyan-400 transition-colors flex justify-center items-center gap-2"
                 >
                   <ShoppingCart size={14} strokeWidth={2.5} />
