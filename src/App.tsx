@@ -1680,6 +1680,7 @@ export default function App() {
                          <p className="text-xs text-gray-400 font-mono">PLATAFORMA: <span className="text-[#00e5ff]">{sol.platform}</span></p>
                          <p className="text-[10px] text-gray-500 uppercase mt-1">CLIENTE: {sol.client_email}</p>
                        </div>
+                       </div>
                        
                        <div className="flex items-center gap-2">
                          {sol.status === 'PENDENTE' && (
