@@ -2702,7 +2702,7 @@ export default function App() {
                     ADICIONAR AO CARRINHO
                   </button>
                   <button
-                    onClick={() => handleBuyClick(selectedGame, true)}
+                    onClick={() => setCurrentView('cart')}
                     className="w-full bg-[#00e5ff] text-black font-black uppercase py-4 px-6 rounded hover:bg-cyan-300 transition-colors tracking-widest text-sm shadow-[0_0_20px_rgba(0,229,255,0.4)]"
                   >
                     IR PARA O CARRINHO
