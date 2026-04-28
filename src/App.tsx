@@ -345,12 +345,9 @@ export default function App() {
                 className="bg-black border border-gray-800 rounded px-4 py-3 text-sm focus:outline-none focus:border-[#00e5ff] transition-all text-white"
               >
                 <option value="">Selecione...</option>
-                <option value="PS1">PLAYSTATION 1</option>
-                <option value="PS2">PLAYSTATION 2</option>
-                <option value="PS3">PLAYSTATION 3</option>
-                <option value="PS4">PLAYSTATION 4</option>
-                <option value="PC">PC</option>
-                <option value="DREAMCAST">DREAMCAST</option>
+                {consolesList.map(c => (
+                  <option key={c.id} value={c.slug}>{c.name}</option>
+                ))}
               </select>
             </div>
             <div className="flex flex-col">
