@@ -86,6 +86,7 @@ const initialPedidos = [
 export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('TODOS');
+  const [currentPage, setCurrentPage] = useState(1);
   const [currentView, setCurrentView] = useState<'catalog' | 'login' | 'register' | 'admin' | 'game'>('catalog');
   const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true');
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('isAdmin') === 'true');
@@ -505,6 +506,37 @@ export default function App() {
     const matchesFilter = selectedConsole ? game.platform === selectedConsole.slug : false;
     return matchesSearch && matchesFilter;
   });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeFilter]);
+
+  const ITEMS_PER_PAGE = 8;
+  const totalPages = Math.max(1, Math.ceil(filteredGames.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
+  const currentGames = filteredGames.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  const getPaginationGroup = () => {
+    let pages = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 3) {
+        pages = [1, 2, 3, '...', totalPages];
+      } else if (currentPage >= totalPages - 2) {
+        pages = [1, '...', totalPages - 2, totalPages - 1, totalPages];
+      } else {
+        pages = [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+      }
+    }
+    return pages;
+  };
 
   const handleBuyClick = (gameObj: any, goToCart: boolean = false) => {
     if (!gameObj || !gameObj.id) return;
@@ -2835,7 +2867,7 @@ export default function App() {
 
         {/* Game Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredGames.map(game => (
+          {currentGames.map(game => (
             <div key={game.id} className="flex flex-col bg-[#111] border border-gray-800 rounded-md overflow-hidden hover:border-gray-600 transition-colors group">
               {/* Image Container */}
               <div
@@ -2884,6 +2916,45 @@ export default function App() {
             </div>
           ))}
         </div>
+
+        {/* Paginação */}
+        {filteredGames.length > 0 && totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-12 mb-6">
+            {getPaginationGroup().map((item, index) => {
+              if (item === '...') {
+                return (
+                  <span key={index} className="w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center bg-[#111] text-white border-2 border-[#ffff00] shadow-sm select-none">
+                    ...
+                  </span>
+                );
+              }
+              const pageNum = item as number;
+              const isCurrent = pageNum === currentPage;
+              return (
+                <button
+                  key={index}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center transition-all ${
+                    isCurrent 
+                      ? 'bg-[#ffff00] text-black shadow-[0_0_15px_rgba(255,255,0,0.6)]' 
+                      : 'bg-[#111] text-white border-2 border-[#ffff00] hover:bg-[#ffff00]/20'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+            
+            {currentPage < totalPages && (
+               <button
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  className="w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center transition-all bg-[#111] text-white border-2 border-[#ffff00] hover:bg-[#ffff00]/20 ml-1"
+                >
+                  »
+                </button>
+            )}
+          </div>
+        )}
 
         {filteredGames.length === 0 && (
           <div className="text-center text-gray-500 py-20">
