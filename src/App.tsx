@@ -86,6 +86,7 @@ const initialPedidos = [
 export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('TODOS');
+  const [currentPage, setCurrentPage] = useState(1);
   const [currentView, setCurrentView] = useState<'catalog' | 'login' | 'register' | 'admin' | 'game'>('catalog');
   const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true');
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('isAdmin') === 'true');
@@ -98,6 +99,11 @@ export default function App() {
   const [editingGame, setEditingGame] = useState<any>(null);
   const [adminGameSearch, setAdminGameSearch] = useState('');
   const [adminGameFilter, setAdminGameFilter] = useState('TODOS');
+  const [adminCurrentPage, setAdminCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setAdminCurrentPage(1);
+  }, [adminActiveTab, adminGameSearch, adminGameFilter]);
   
   const [nameInput, setNameInput] = useState('');
   
@@ -296,6 +302,57 @@ export default function App() {
   const [activeChatOrderId, setActiveChatOrderId] = useState<number | null>(null);
 
   const [pedidosList, setPedidosList] = useState<any[]>([]);
+
+  const ADMIN_ITEMS_PER_PAGE = 8;
+  const renderAdminPagination = (totalItems: number) => {
+    const totalPages = Math.max(1, Math.ceil(totalItems / ADMIN_ITEMS_PER_PAGE));
+    if (totalItems === 0 || totalPages <= 1) return null;
+
+    const getAdminPaginationGroup = () => {
+      let pages = [];
+      if (totalPages <= 5) {
+        for (let i = 1; i <= totalPages; i++) pages.push(i);
+      } else {
+        if (adminCurrentPage <= 3) {
+          pages = [1, 2, 3, '...', totalPages];
+        } else if (adminCurrentPage >= totalPages - 2) {
+          pages = [1, '...', totalPages - 2, totalPages - 1, totalPages];
+        } else {
+          pages = [1, '...', adminCurrentPage - 1, adminCurrentPage, adminCurrentPage + 1, '...', totalPages];
+        }
+      }
+      return pages;
+    };
+
+    return (
+      <div className="flex items-center justify-center gap-2 mt-8 mb-4 border-t border-gray-800 pt-6">
+        {getAdminPaginationGroup().map((item, index) => {
+          if (item === '...') {
+            return (
+              <span key={index} className="w-8 h-8 rounded shrink-0 font-black text-sm flex items-center justify-center bg-[#111] text-gray-500 border border-gray-800 select-none">
+                ...
+              </span>
+            );
+          }
+          const pageNum = item as number;
+          const isCurrent = pageNum === adminCurrentPage;
+          return (
+            <button
+              key={index}
+              onClick={() => setAdminCurrentPage(pageNum)}
+              className={`w-8 h-8 rounded shrink-0 font-black text-sm flex items-center justify-center transition-all ${
+                isCurrent 
+                  ? 'bg-[#00e5ff] text-black shadow-[0_0_10px_rgba(0,229,255,0.4)]' 
+                  : 'bg-[#111] text-white border border-gray-800 hover:border-[#00e5ff] hover:text-[#00e5ff]'
+              }`}
+            >
+              {pageNum}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
 
   const renderNotificationBalloon = () => {
     if (!notification) return null;
@@ -505,6 +562,37 @@ export default function App() {
     const matchesFilter = selectedConsole ? game.platform === selectedConsole.slug : false;
     return matchesSearch && matchesFilter;
   });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeFilter]);
+
+  const ITEMS_PER_PAGE = 8;
+  const totalPages = Math.max(1, Math.ceil(filteredGames.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
+  const currentGames = filteredGames.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  const getPaginationGroup = () => {
+    let pages = [];
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (currentPage <= 3) {
+        pages = [1, 2, 3, '...', totalPages];
+      } else if (currentPage >= totalPages - 2) {
+        pages = [1, '...', totalPages - 2, totalPages - 1, totalPages];
+      } else {
+        pages = [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
+      }
+    }
+    return pages;
+  };
 
   const handleBuyClick = (gameObj: any, goToCart: boolean = false) => {
     if (!gameObj || !gameObj.id) return;
@@ -1573,9 +1661,13 @@ export default function App() {
                      );
                   }
 
+                  const startIndex = (adminCurrentPage - 1) * ADMIN_ITEMS_PER_PAGE;
+                  const currentAdminGames = adminFilteredGames.slice(startIndex, startIndex + ADMIN_ITEMS_PER_PAGE);
+
                   return (
+                    <>
                     <div className="flex flex-col gap-4">
-                      {adminFilteredGames.map((game) => (
+                      {currentAdminGames.map((game) => (
                       <div key={game.id} className="bg-black border border-gray-800 rounded-md overflow-hidden flex flex-col sm:flex-row group relative hover:border-gray-600 transition-colors">
                         
                         {/* Capa */}
@@ -1640,6 +1732,8 @@ export default function App() {
                       </div>
                       ))}
                     </div>
+                    {renderAdminPagination(adminFilteredGames.length)}
+                    </>
                   );
                 })()}
               </div>
@@ -1656,7 +1750,8 @@ export default function App() {
                  {solicitacoesList.length === 0 ? (
                    <p className="text-gray-500 font-mono text-sm py-10 text-center border border-dashed border-gray-800 rounded">Nenhuma encomenda pendente.</p>
                  ) : (
-                   solicitacoesList.map((sol) => (
+                   <>
+                   {solicitacoesList.slice((adminCurrentPage - 1) * ADMIN_ITEMS_PER_PAGE, adminCurrentPage * ADMIN_ITEMS_PER_PAGE).map((sol) => (
                      <div key={sol.id} className="bg-black border border-gray-800 rounded p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-gray-600 transition-colors">
                        <div className="flex items-start md:items-center gap-4">
                          {sol.image_url && (
@@ -1716,7 +1811,9 @@ export default function App() {
                          </button>
                        </div>
                      </div>
-                   ))
+                   ))}
+                   {renderAdminPagination(solicitacoesList.length)}
+                   </>
                  )}
                </div>
             </div>
@@ -1732,7 +1829,7 @@ export default function App() {
               </button>
 
               <div className="flex flex-col gap-4">
-                {consolesList.map((console) => (
+                {consolesList.slice((adminCurrentPage - 1) * ADMIN_ITEMS_PER_PAGE, adminCurrentPage * ADMIN_ITEMS_PER_PAGE).map((console) => (
                   <div key={console.id} className="bg-black border border-gray-800 rounded-md overflow-hidden flex flex-col sm:flex-row group relative hover:border-gray-600 transition-colors">
                     
                     {/* Capa */}
@@ -1801,6 +1898,7 @@ export default function App() {
                   </div>
                 ))}
               </div>
+              {renderAdminPagination(consolesList.length)}
             </div>
           )}
 
@@ -1814,7 +1912,7 @@ export default function App() {
               </button>
 
               <div className="flex flex-col gap-4">
-                {usersList.map((user) => (
+                {usersList.slice((adminCurrentPage - 1) * ADMIN_ITEMS_PER_PAGE, adminCurrentPage * ADMIN_ITEMS_PER_PAGE).map((user) => (
                   <div key={user.id} className="bg-black border border-gray-800 rounded-md overflow-hidden flex flex-col sm:flex-row group relative hover:border-gray-600 transition-colors">
                     
                     {/* Avatar Simulado */}
@@ -1882,13 +1980,14 @@ export default function App() {
                   </div>
                 ))}
               </div>
+              {renderAdminPagination(usersList.length)}
             </div>
           )}
 
           {adminActiveTab === 'pedidos' && (
             <div className="space-y-6">
               <div className="flex flex-col gap-4">
-                {pedidosList.map((pedido) => (
+                {pedidosList.slice((adminCurrentPage - 1) * ADMIN_ITEMS_PER_PAGE, adminCurrentPage * ADMIN_ITEMS_PER_PAGE).map((pedido) => (
                   <div key={pedido.id} className="bg-black border border-gray-800 rounded-md overflow-hidden flex flex-col sm:flex-row group relative hover:border-gray-600 transition-colors">
                     
                     {/* Capa do Pedido */}
@@ -1996,6 +2095,7 @@ export default function App() {
                   </div>
                 ))}
               </div>
+              {renderAdminPagination(pedidosList.length)}
             </div>
           )}
         </main>
@@ -2835,7 +2935,7 @@ export default function App() {
 
         {/* Game Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredGames.map(game => (
+          {currentGames.map(game => (
             <div key={game.id} className="flex flex-col bg-[#111] border border-gray-800 rounded-md overflow-hidden hover:border-gray-600 transition-colors group">
               {/* Image Container */}
               <div
@@ -2884,6 +2984,45 @@ export default function App() {
             </div>
           ))}
         </div>
+
+        {/* Paginação */}
+        {filteredGames.length > 0 && totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-12 mb-6">
+            {getPaginationGroup().map((item, index) => {
+              if (item === '...') {
+                return (
+                  <span key={index} className="w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center bg-[#111] text-white border-2 border-[#ffff00] shadow-sm select-none">
+                    ...
+                  </span>
+                );
+              }
+              const pageNum = item as number;
+              const isCurrent = pageNum === currentPage;
+              return (
+                <button
+                  key={index}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center transition-all ${
+                    isCurrent 
+                      ? 'bg-[#ffff00] text-black shadow-[0_0_15px_rgba(255,255,0,0.6)]' 
+                      : 'bg-[#111] text-white border-2 border-[#ffff00] hover:bg-[#ffff00]/20'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+            
+            {currentPage < totalPages && (
+               <button
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  className="w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center transition-all bg-[#111] text-white border-2 border-[#ffff00] hover:bg-[#ffff00]/20 ml-1"
+                >
+                  »
+                </button>
+            )}
+          </div>
+        )}
 
         {filteredGames.length === 0 && (
           <div className="text-center text-gray-500 py-20">
