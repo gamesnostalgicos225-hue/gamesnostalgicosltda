@@ -91,7 +91,14 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true');
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('isAdmin') === 'true');
   const [isSomenteEnviarPedido, setIsSomenteEnviarPedido] = useState(() => localStorage.getItem('isSomenteEnviarPedido') === 'true');
+  const [somenteEnviarEmails, setSomenteEnviarEmails] = useState<string[]>([]);
   const [loggedInEmail, setLoggedInEmail] = useState(() => localStorage.getItem('loggedInEmail') || '');
+
+  useEffect(() => {
+    loadFromCloud('somente_enviar_pedido_users').then(data => {
+      if (Array.isArray(data)) setSomenteEnviarEmails(data);
+    });
+  }, []);
   const [showPassword, setShowPassword] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
@@ -662,13 +669,19 @@ export default function App() {
       return;
     }
 
+    const cloudList = await loadFromCloud('somente_enviar_pedido_users');
+    const emailsList = Array.isArray(cloudList) ? cloudList : [];
+    const canSendOnly = emailsList.includes(email);
+
     setIsLoggedIn(true);
     setIsAdmin(user.role === 'ADMIN');
-    setIsSomenteEnviarPedido(Boolean(user.somente_enviar_pedido));
+    setIsSomenteEnviarPedido(canSendOnly);
     setLoggedInEmail(email);
+    setSomenteEnviarEmails(emailsList);
+    
     localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('isAdmin', String(user.role === 'ADMIN'));
-    localStorage.setItem('isSomenteEnviarPedido', String(Boolean(user.somente_enviar_pedido)));
+    localStorage.setItem('isSomenteEnviarPedido', String(canSendOnly));
     localStorage.setItem('loggedInEmail', email);
     setCurrentView(user.role === 'ADMIN' ? 'admin' : 'catalog');
   };
@@ -1983,12 +1996,14 @@ export default function App() {
                          <input 
                            type="checkbox" 
                            className="form-checkbox h-3 w-3 text-[#00e5ff] bg-black border-gray-800 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer" 
-                           checked={Boolean(user.somente_enviar_pedido)} 
+                           checked={somenteEnviarEmails.includes(user.email)} 
                            onChange={async (e) => {
                              const newVal = e.target.checked;
-                             setUsersList(prev => prev.map(u => u.id === user.id ? { ...u, somente_enviar_pedido: newVal } : u));
-                             const { error } = await supabase.from('users').update({ somente_enviar_pedido: newVal }).eq('id', user.id);
-                             if (error) alert(`Erro ao alterar opção: ${error.message}`);
+                             let newList = [...somenteEnviarEmails];
+                             if (newVal && !newList.includes(user.email)) newList.push(user.email);
+                             if (!newVal) newList = newList.filter(em => em !== user.email);
+                             setSomenteEnviarEmails(newList);
+                             await syncToCloud('somente_enviar_pedido_users', newList);
                            }}
                          />
                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">Somente Pedido</span>
