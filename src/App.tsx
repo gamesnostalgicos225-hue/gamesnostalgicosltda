@@ -90,6 +90,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState<'catalog' | 'login' | 'register' | 'admin' | 'game'>('catalog');
   const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true');
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('isAdmin') === 'true');
+  const [isSomenteEnviarPedido, setIsSomenteEnviarPedido] = useState(() => localStorage.getItem('isSomenteEnviarPedido') === 'true');
   const [loggedInEmail, setLoggedInEmail] = useState(() => localStorage.getItem('loggedInEmail') || '');
   const [showPassword, setShowPassword] = useState(false);
   const [emailInput, setEmailInput] = useState('');
@@ -634,9 +635,11 @@ export default function App() {
     if (email === 'admin@gamesnostalgicos.com' && pass === 'administrador123') {
       setIsLoggedIn(true);
       setIsAdmin(true);
+      setIsSomenteEnviarPedido(false);
       setLoggedInEmail(email);
       localStorage.setItem('isLoggedIn', 'true');
       localStorage.setItem('isAdmin', 'true');
+      localStorage.setItem('isSomenteEnviarPedido', 'false');
       localStorage.setItem('loggedInEmail', email);
       setCurrentView('admin');
       return;
@@ -661,9 +664,11 @@ export default function App() {
 
     setIsLoggedIn(true);
     setIsAdmin(user.role === 'ADMIN');
+    setIsSomenteEnviarPedido(Boolean(user.somente_enviar_pedido));
     setLoggedInEmail(email);
     localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('isAdmin', String(user.role === 'ADMIN'));
+    localStorage.setItem('isSomenteEnviarPedido', String(Boolean(user.somente_enviar_pedido)));
     localStorage.setItem('loggedInEmail', email);
     setCurrentView(user.role === 'ADMIN' ? 'admin' : 'catalog');
   };
@@ -672,9 +677,11 @@ export default function App() {
   const handleLogout = () => {
     setIsLoggedIn(false);
     setIsAdmin(false);
+    setIsSomenteEnviarPedido(false);
     setLoggedInEmail('');
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('isAdmin');
+    localStorage.removeItem('isSomenteEnviarPedido');
     localStorage.removeItem('loggedInEmail');
     setCartItems([]);
     setCurrentView('catalog');
@@ -812,6 +819,44 @@ export default function App() {
   if (currentView === 'cart') {
     const totalAmount = cartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
 
+    const runOrderDirectly = async () => {
+       const orderNumberStr = Math.random().toString(16).slice(2, 10).toUpperCase();
+       
+       const pedidoData = {
+          order_number: orderNumberStr,
+          client_email: loggedInEmail || emailInput || 'cliente@site.com',
+          date: new Date().toLocaleString('pt-BR'),
+          total: totalAmount,
+          status: 'SOLICITADO',
+          client_info: { nome: "Pedido Direto", cpf: "N/A" },
+          has_unread_cliente: false,
+          has_unread_admin: false
+       };
+
+       const { data: newOrder, error } = await supabase.from('pedidos').insert(pedidoData).select('*').single();
+       if (error) { 
+         alert('Erro ao criar o pedido: ' + error.message); 
+         return; 
+       }
+
+       if (newOrder && cartItems.length > 0) {
+         const itemsToInsert = cartItems.map(i => ({
+            pedido_id: newOrder.id,
+            name: i.title || i.name,
+            platform: i.platform || null,
+            qty: i.qty,
+            price: i.price,
+            image: i.image || null
+         }));
+         await supabase.from('pedido_items').insert(itemsToInsert);
+       }
+
+       getPedidos().then(setPedidosList);
+       setCartItems([]);
+       alert(`Pedido #${orderNumberStr} enviado! O administrador verificará os jogos.`);
+       setCurrentView('account');
+    };
+
     const handleProceedToCheckout = () => {
       if (cartItems.length === 0) return;
       if (!isLoggedIn) {
@@ -819,7 +864,11 @@ export default function App() {
         setCurrentView('login');
         return;
       }
-      setCurrentView('checkout');
+      if (isSomenteEnviarPedido) {
+        runOrderDirectly();
+      } else {
+        setCurrentView('checkout');
+      }
     };
 
     return (
@@ -913,7 +962,7 @@ export default function App() {
               disabled={cartItems.length === 0}
               className="w-full bg-[#00e5ff] text-black font-black uppercase py-4 rounded hover:bg-cyan-300 transition-colors tracking-widest flex items-center justify-center gap-2 mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              FINALIZAR COMPRA &rarr;
+              {isSomenteEnviarPedido ? 'ENVIAR O PEDIDO \u2192' : 'FINALIZAR COMPRA \u2192'}
             </button>
             <button 
               onClick={() => setCurrentView('catalog')}
@@ -1913,69 +1962,78 @@ export default function App() {
 
               <div className="flex flex-col gap-4">
                 {usersList.slice((adminCurrentPage - 1) * ADMIN_ITEMS_PER_PAGE, adminCurrentPage * ADMIN_ITEMS_PER_PAGE).map((user) => (
-                  <div key={user.id} className="bg-black border border-gray-800 rounded-md overflow-hidden flex flex-col sm:flex-row group relative hover:border-gray-600 transition-colors">
-                    
-                    {/* Avatar Simulado */}
-                    <div className="relative w-full sm:w-24 shrink-0 aspect-square bg-[#111] border-b sm:border-b-0 sm:border-r border-gray-800 flex items-center justify-center">
-                       <User size={40} className="text-gray-600" />
+                  <div key={user.id} className="bg-black border border-gray-800 rounded px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group relative hover:border-gray-600 transition-colors">
+                    {/* User Info */}
+                    <div className="flex flex-col gap-1 w-full sm:w-auto overflow-hidden">
+                       <div className="flex items-center gap-3">
+                         <h3 className="text-base font-black uppercase text-white tracking-tight leading-none truncate">{user.name}</h3>
+                         <span className={`px-2 py-0.5 border text-[9px] font-bold tracking-wider rounded uppercase shrink-0 ${(user.role === 'ADMIN') 
+                           ? 'border-[#00e5ff] text-[#00e5ff] bg-[#00e5ff]/10' 
+                           : 'border-gray-500 text-gray-500 bg-gray-500/10'}`}>
+                           {user.role}
+                         </span>
+                       </div>
+                       <p className="text-gray-400 font-mono text-[10px] uppercase truncate">E-Mail: <span className="text-[#00e5ff]">{user.email}</span></p>
+                       <p className="text-gray-500 font-mono text-[9px] uppercase">Cadastrado em: {user.registeredAt}</p>
                     </div>
 
-                    {/* Detalhes & Actions */}
-                    <div className="p-4 flex flex-col flex-grow gap-4 justify-between w-full">
-                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                        <div>
-                           <h3 className="text-base font-black uppercase text-white tracking-tight mb-1 leading-tight">{user.name}</h3>
-                           <p className="text-gray-400 font-mono text-[10px] uppercase">E-Mail: <span className="text-gray-300">{user.email}</span></p>
-                           <p className="text-gray-400 font-mono text-[10px] uppercase mt-0.5">Cadastrado em: <span className="text-gray-300">{user.registeredAt}</span></p>
-                        </div>
-                        <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 shrink-0 w-full sm:w-auto">
-                           <span className={`px-2 py-0.5 border text-[9px] font-bold tracking-wider rounded uppercase ${(user.role === 'ADMIN') 
-                             ? 'border-[#00e5ff] text-[#00e5ff] bg-[#00e5ff]/10' 
-                             : 'border-gray-500 text-gray-500 bg-gray-500/10'}`}>
-                             {user.role}
-                           </span>
-                           <span className={`px-2 py-0.5 border text-[9px] font-bold tracking-wider rounded uppercase ${(user.status || 'ATIVO') === 'ATIVO'
-                             ? 'border-[#00ff44] text-[#00ff44] bg-[#00ff44]/10'
-                             : 'border-red-500 text-red-500 bg-red-500/10'
-                             }`}>
-                             {user.status || 'ATIVO'}
-                           </span>
-                        </div>
-                      </div>
+                    {/* Status & Actions */}
+                    <div className="flex flex-row items-center gap-4 shrink-0 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 border-gray-800/50 pt-3 sm:pt-0 mt-2 sm:mt-0">
+                       <label className="flex items-center gap-2 cursor-pointer" title="Marque para o usuário apenas enviar pedido sem pagamento">
+                         <input 
+                           type="checkbox" 
+                           className="form-checkbox h-3 w-3 text-[#00e5ff] bg-black border-gray-800 rounded focus:ring-0 focus:ring-offset-0 cursor-pointer" 
+                           checked={Boolean(user.somente_enviar_pedido)} 
+                           onChange={async (e) => {
+                             const newVal = e.target.checked;
+                             setUsersList(prev => prev.map(u => u.id === user.id ? { ...u, somente_enviar_pedido: newVal } : u));
+                             const { error } = await supabase.from('users').update({ somente_enviar_pedido: newVal }).eq('id', user.id);
+                             if (error) alert(`Erro ao alterar opção: ${error.message}`);
+                           }}
+                         />
+                         <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">Somente Pedido</span>
+                       </label>
+                       
+                       <span className={`px-2 py-0.5 border text-[9px] font-bold tracking-wider rounded uppercase ${(user.status || 'ATIVO') === 'ATIVO'
+                         ? 'border-[#00ff44] text-[#00ff44] bg-[#00ff44]/10'
+                         : 'border-red-500 text-red-500 bg-red-500/10'
+                         }`}>
+                         {user.status || 'ATIVO'}
+                       </span>
 
-                      {/* Actions */}
-                      <div className="flex flex-wrap gap-2 justify-end mt-auto pt-2 sm:pt-0">
-                        <button
-                          onClick={async () => {
-                            const newStatus = (user.status || 'ATIVO') === 'ATIVO' ? 'INATIVO' : 'ATIVO';
-                            const { error } = await supabase.from('users').update({ status: newStatus }).eq('id', user.id);
-                            if (error) alert(`Erro ao alterar status: ${error.message}`);
-                          }}
-                          className={`py-1.5 px-3 flex items-center justify-center gap-2 rounded border transition-colors text-[10px] font-bold uppercase shadow-[0_0_10px_rgba(0,0,0,0.5)] ${(user.status || 'ATIVO') === 'INATIVO'
-                            ? 'border-[#00ff44] text-[#00ff44] hover:bg-[#00ff44]/10 hover:shadow-[0_0_15px_rgba(0,255,68,0.2)]'
-                            : 'border-[#b58900] text-[#b58900] hover:bg-[#b58900]/10 hover:shadow-[0_0_15px_rgba(181,137,0,0.2)]'
-                            }`}
-                        >
-                          {(user.status || 'ATIVO') === 'INATIVO' ? 'Reativar' : 'Bloquear'}
-                        </button>
-                        <button
-                          onClick={() => setEditingUser(user)}
-                          className="py-1.5 px-3 flex items-center justify-center gap-2 rounded border border-[#00e5ff] text-[#00e5ff] hover:bg-[#00e5ff]/10 hover:shadow-[0_0_15px_rgba(0,229,255,0.2)] transition-colors text-[10px] font-bold uppercase"
-                        >
-                          <Edit size={12} /> Editar
-                        </button>
-                        <button
-                          onClick={async () => {
-                            if (window.confirm(`Tem certeza que deseja excluir o usuário "${user.name}"?`)) {
-                              const { error } = await supabase.from('users').delete().eq('id', user.id);
-                              if (error) alert(`Erro ao excluir usuário: ${error.message}`);
-                            }
-                          }}
-                          className="py-1.5 px-3 flex items-center justify-center gap-2 rounded border border-[#ff6b00] text-[#ff6b00] hover:bg-[#ff6b00]/10 hover:shadow-[0_0_15px_rgba(255,107,0,0.2)] transition-colors text-[10px] font-bold uppercase"
-                        >
-                          <Trash2 size={12} /> Excluir
-                        </button>
-                      </div>
+                       {/* Actions */}
+                       <div className="flex gap-2">
+                         <button
+                           onClick={async () => {
+                             const newStatus = (user.status || 'ATIVO') === 'ATIVO' ? 'INATIVO' : 'ATIVO';
+                             const { error } = await supabase.from('users').update({ status: newStatus }).eq('id', user.id);
+                             if (error) alert(`Erro ao alterar status: ${error.message}`);
+                           }}
+                           className={`py-1.5 px-3 flex items-center justify-center gap-2 rounded border transition-colors text-[10px] font-bold uppercase shadow-[0_0_10px_rgba(0,0,0,0.5)] ${(user.status || 'ATIVO') === 'INATIVO'
+                             ? 'border-[#00ff44] text-[#00ff44] hover:bg-[#00ff44]/10 hover:shadow-[0_0_15px_rgba(0,255,68,0.2)]'
+                             : 'border-[#b58900] text-[#b58900] hover:bg-[#b58900]/10 hover:shadow-[0_0_15px_rgba(181,137,0,0.2)]'
+                             }`}
+                         >
+                           {(user.status || 'ATIVO') === 'INATIVO' ? 'Reativar' : 'Bloquear'}
+                         </button>
+                         <button
+                           onClick={() => setEditingUser(user)}
+                           className="py-1.5 px-3 flex items-center justify-center gap-2 rounded border border-[#00e5ff] text-[#00e5ff] hover:bg-[#00e5ff]/10 hover:shadow-[0_0_15px_rgba(0,229,255,0.2)] transition-colors text-[10px] font-bold uppercase"
+                         >
+                           <Edit size={12} /> Editar
+                         </button>
+                         <button
+                           onClick={async () => {
+                             if (window.confirm(`Tem certeza que deseja excluir o usuário "${user.name}"?`)) {
+                               const { error } = await supabase.from('users').delete().eq('id', user.id);
+                               if (error) alert(`Erro ao excluir usuário: ${error.message}`);
+                             }
+                           }}
+                           className="py-1.5 px-3 flex items-center justify-center gap-2 rounded border border-[#ff6b00] text-[#ff6b00] hover:bg-[#ff6b00]/10 hover:shadow-[0_0_15px_rgba(255,107,0,0.2)] transition-colors text-[10px] font-bold uppercase"
+                         >
+                           <Trash2 size={12} /> Excluir
+                         </button>
+                       </div>
                     </div>
                   </div>
                 ))}
@@ -1988,66 +2046,77 @@ export default function App() {
             <div className="space-y-6">
               <div className="flex flex-col gap-4">
                 {pedidosList.slice((adminCurrentPage - 1) * ADMIN_ITEMS_PER_PAGE, adminCurrentPage * ADMIN_ITEMS_PER_PAGE).map((pedido) => (
-                  <div key={pedido.id} className="bg-black border border-gray-800 rounded-md overflow-hidden flex flex-col sm:flex-row group relative hover:border-gray-600 transition-colors">
-                    
-                    {/* Capa do Pedido */}
-                    <div className="relative w-full sm:w-24 shrink-0 aspect-square sm:aspect-[3/4] sm:min-h-full bg-[#111] border-b sm:border-b-0 sm:border-r border-gray-800 overflow-hidden">
-                       {pedido.items[0]?.image ? (
-                         <img src={pedido.items[0].image} alt="Capa" className="w-full h-full object-cover" />
-                       ) : (
-                         <div className="flex items-center justify-center w-full h-full">
-                           <Package size={32} className="text-gray-600" />
-                         </div>
-                       )}
-                    </div>
+                  <div key={pedido.id} className="bg-black border border-gray-800 rounded px-6 py-5 flex flex-col gap-4 group relative hover:border-gray-600 transition-colors">
+                     
+                     {/* Header */}
+                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-gray-800/50">
+                        <div className="flex flex-col gap-1 w-full md:w-auto overflow-hidden">
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-lg font-black uppercase text-white tracking-tight leading-none truncate">PEDIDO #{pedido.orderNumber}</h3>
+                            <span className={`px-2 py-0.5 border text-[9px] font-bold tracking-wider rounded uppercase shrink-0 ${
+                              pedido.status === 'PAGO' ? 'border-[#00ff44] text-[#00ff44] bg-[#00ff44]/10' :
+                              pedido.status === 'AGUARDANDO' ? 'border-[#b58900] text-[#b58900] bg-[#b58900]/10' :
+                              'border-red-500 text-red-500 bg-red-500/10'
+                              }`}>
+                              {pedido.status}
+                            </span>
+                          </div>
+                          <p className="text-gray-400 font-mono text-[10px] uppercase truncate">Data: <span className="text-gray-300">{pedido.date}</span></p>
+                        </div>
+                        <div className="text-[#00ff44] text-xl font-black shrink-0">R$ {Number(pedido.total).toFixed(2)}</div>
+                     </div>
 
-                    {/* Detalhes & Actions */}
-                    <div className="p-4 flex flex-col flex-grow gap-3 justify-between w-full">
-                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                        <div>
-                           <h3 className="text-base font-black uppercase text-white tracking-tight mb-1 leading-tight">PEDIDO #{pedido.orderNumber}</h3>
-                           <p className="text-gray-400 font-mono text-[10px] uppercase">Cliente: <span className="text-gray-300">{pedido.clientEmail}</span></p>
-                           <p className="text-gray-400 font-mono text-[10px] uppercase mt-0.5">Data: <span className="text-gray-300">{pedido.date}</span></p>
-                           {pedido.clientInfo && (
-                             <div className="mt-3 bg-gray-900/50 border border-gray-800 rounded p-3 text-[9px] font-mono text-gray-400 break-all leading-relaxed">
-                               <p><strong className="text-[#00e5ff] tracking-wider uppercase">Nome:</strong> {pedido.clientInfo.nome} <span className="mx-2 text-gray-700">|</span> <strong className="text-[#00e5ff] tracking-wider uppercase">CPF:</strong> {pedido.clientInfo.cpf} <span className="mx-2 text-gray-700">|</span> <strong className="text-[#00e5ff] tracking-wider uppercase">Tel:</strong> {pedido.clientInfo.telefone}</p>
-                               <p className="mt-1"><strong className="text-[#00e5ff] tracking-wider uppercase">CEP:</strong> {pedido.clientInfo.cep} <span className="mx-2 text-gray-700">|</span> <strong className="text-[#00e5ff] tracking-wider uppercase">Rua:</strong> {pedido.clientInfo.endereco}, {pedido.clientInfo.numero}</p>
-                               <p className="mt-1"><strong className="text-[#00e5ff] tracking-wider uppercase">Compl:</strong> {pedido.clientInfo.complemento || 'N/A'} <span className="mx-2 text-gray-700">|</span> <strong className="text-[#00e5ff] tracking-wider uppercase">Bairro:</strong> {pedido.clientInfo.bairro}</p>
-                               <p className="mt-1"><strong className="text-[#00e5ff] tracking-wider uppercase">Cidade/UF:</strong> {pedido.clientInfo.cidade} - {pedido.clientInfo.estado}</p>
-                             </div>
-                           )}
-                           <div className="flex flex-col gap-3 mt-4 text-gray-500 font-mono text-[10px] uppercase">
-                             {pedido.items.map((item: any, idx: number) => (
-                               <div key={idx} className="flex gap-3 items-center bg-gray-900/30 border border-gray-800 rounded p-2">
-                                 {item.image && 
-                                   <img src={item.image} alt={item.name} className="w-8 h-auto aspect-[3/4] object-cover rounded" />
-                                 }
-                                 <div className="flex flex-col flex-grow">
-                                   <span className="text-white font-bold text-xs">{item.name || item.title}</span>
-                                   <span className="text-gray-500 text-[9px] font-mono mt-0.5 mb-1">{item.platform || "CONSOLE"}</span>
-                                   <div className="flex justify-between items-center mt-auto">
-                                     <span className="text-[#00e5ff] font-bold">{item.qty} UNIDADE(S)</span>
+                     {/* Body (Client + Items) */}
+                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                       
+                       {/* Client Info */}
+                       <div className="flex flex-col gap-2 overflow-hidden">
+                         <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Cliente</div>
+                         <div className="bg-[#111] border border-gray-800 rounded p-4 text-[10px] font-mono text-gray-400 leading-relaxed overflow-hidden">
+                            <p className="truncate"><strong className="text-[#00e5ff] tracking-wider uppercase">Email:</strong> {pedido.clientEmail}</p>
+                            {pedido.clientInfo && (
+                              <>
+                                <p className="mt-1 truncate"><strong className="text-[#00e5ff] tracking-wider uppercase">Nome:</strong> {pedido.clientInfo.nome} <span className="mx-2 text-gray-700">|</span> <strong className="text-[#00e5ff] tracking-wider uppercase">CPF:</strong> {pedido.clientInfo.cpf}</p>
+                                <p className="mt-1 truncate"><strong className="text-[#00e5ff] tracking-wider uppercase">Tel:</strong> {pedido.clientInfo.telefone}</p>
+                                <div className="mt-2 pt-2 border-t border-gray-800/50">
+                                  <p className="truncate"><strong className="text-[#00e5ff] tracking-wider uppercase">Endereço:</strong> {pedido.clientInfo.endereco}, {pedido.clientInfo.numero}</p>
+                                  <p className="mt-1 truncate"><strong className="text-[#00e5ff] tracking-wider uppercase">Compl/Bairro:</strong> {pedido.clientInfo.complemento ? `${pedido.clientInfo.complemento} - ` : ''}{pedido.clientInfo.bairro}</p>
+                                  <p className="mt-1 truncate"><strong className="text-[#00e5ff] tracking-wider uppercase">CEP/Cidade:</strong> {pedido.clientInfo.cep} - {pedido.clientInfo.cidade}/{pedido.clientInfo.estado}</p>
+                                </div>
+                              </>
+                            )}
+                         </div>
+                       </div>
+
+                       {/* Items List */}
+                       <div className="flex flex-col gap-2 overflow-hidden">
+                         <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Itens ({pedido.items.length})</div>
+                         <div className="flex flex-col gap-2 max-h-[150px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                            {pedido.items.map((item: any, idx: number) => (
+                               <div key={idx} className="flex gap-3 items-center bg-[#111] border border-gray-800 rounded p-2">
+                                 {item.image ? (
+                                   <img src={item.image} alt={item.name} className="w-10 h-auto aspect-[3/4] object-cover rounded bg-gray-900 shrink-0 border border-gray-800" />
+                                 ) : (
+                                   <div className="w-10 aspect-[3/4] rounded bg-gray-900 border border-gray-800 flex items-center justify-center shrink-0">
+                                      <Package size={16} className="text-gray-600" />
+                                   </div>
+                                 )}
+                                 <div className="flex flex-col flex-grow min-w-0">
+                                   <span className="text-white font-bold text-xs truncate">{item.name || item.title}</span>
+                                   <span className="text-gray-500 text-[9px] font-mono mt-0.5 mb-1 truncate">{item.platform || "CONSOLE"}</span>
+                                   <div className="flex justify-between items-end mt-auto">
+                                     <span className="text-[#00e5ff] font-bold text-[9px]">{item.qty} UNIDADE(S)</span>
                                      <span className="text-[#00ff44] font-black text-xs">R$ {(item.price * item.qty).toFixed(2)}</span>
                                    </div>
                                  </div>
                                </div>
-                             ))}
-                           </div>
-                        </div>
-                        <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 shrink-0 w-full sm:w-auto">
-                           <span className={`px-2 py-0.5 border text-[9px] font-bold tracking-wider rounded uppercase ${
-                             pedido.status === 'PAGO' ? 'border-[#00ff44] text-[#00ff44] bg-[#00ff44]/10' :
-                             pedido.status === 'AGUARDANDO' ? 'border-[#b58900] text-[#b58900] bg-[#b58900]/10' :
-                             'border-red-500 text-red-500 bg-red-500/10'
-                             }`}>
-                             {pedido.status}
-                           </span>
-                           <div className="text-[#00ff44] text-sm lg:text-base font-black mt-1">R$ {Number(pedido.total).toFixed(2)}</div>
-                        </div>
-                      </div>
+                            ))}
+                         </div>
+                       </div>
+                     </div>
 
-                      {/* Actions */}
-                      <div className="flex flex-wrap gap-2 justify-end mt-auto pt-2 border-t border-gray-800/50">
+                     {/* Actions */}
+                     <div className="flex flex-wrap gap-2 justify-end pt-3 border-t border-gray-800/50 mt-1">
                         <button
                           onClick={() => {
                             setActiveChatOrderId(pedido.id);
@@ -2090,8 +2159,7 @@ export default function App() {
                         >
                           <XCircle size={12} /> Recusar
                         </button>
-                      </div>
-                    </div>
+                     </div>
                   </div>
                 ))}
               </div>
@@ -2991,7 +3059,7 @@ export default function App() {
             {getPaginationGroup().map((item, index) => {
               if (item === '...') {
                 return (
-                  <span key={index} className="w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center bg-[#111] text-white border-2 border-[#ffff00] shadow-sm select-none">
+                  <span key={index} className="w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center bg-[#111] text-[#00e5ff] border-2 border-[#00e5ff]/30 shadow-sm select-none">
                     ...
                   </span>
                 );
@@ -3004,8 +3072,8 @@ export default function App() {
                   onClick={() => setCurrentPage(pageNum)}
                   className={`w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center transition-all ${
                     isCurrent 
-                      ? 'bg-[#ffff00] text-black shadow-[0_0_15px_rgba(255,255,0,0.6)]' 
-                      : 'bg-[#111] text-white border-2 border-[#ffff00] hover:bg-[#ffff00]/20'
+                      ? 'bg-[#00e5ff] text-black shadow-[0_0_20px_rgba(0,229,255,0.6)] border-2 border-[#00e5ff] scale-110' 
+                      : 'bg-[#111] text-white border-2 border-gray-700 hover:border-[#00e5ff] hover:text-[#00e5ff] hover:shadow-[0_0_10px_rgba(0,229,255,0.3)]'
                   }`}
                 >
                   {pageNum}
@@ -3016,7 +3084,7 @@ export default function App() {
             {currentPage < totalPages && (
                <button
                   onClick={() => setCurrentPage(currentPage + 1)}
-                  className="w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center transition-all bg-[#111] text-white border-2 border-[#ffff00] hover:bg-[#ffff00]/20 ml-1"
+                  className="w-10 h-10 rounded-xl font-black text-xl flex items-center justify-center transition-all bg-[#111] text-white border-2 border-gray-700 hover:border-[#00e5ff] hover:text-[#00e5ff] hover:shadow-[0_0_10px_rgba(0,229,255,0.3)] ml-1"
                 >
                   »
                 </button>
