@@ -219,7 +219,16 @@ export default function App() {
       .channel('db-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, () => getGames().then(setGamesList))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'consoles' }, () => getConsoles().then(setConsolesList))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, () => getPedidos().then(setPedidosList))
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, (payload: any) => {
+          if (isAdminRef.current) {
+            const clientEmail = payload.new?.client_email || 'Usuário';
+            setNotification(`🛒 Novo pedido recebido de ${clientEmail}!`);
+            setTimeout(() => setNotification(null), 8000);
+          }
+          getPedidos().then(setPedidosList);
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'pedidos' }, () => getPedidos().then(setPedidosList))
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'pedidos' }, () => getPedidos().then(setPedidosList))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pedido_items' }, () => getPedidos().then(setPedidosList))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitacoes' }, () => getSolicitacoes().then(setSolicitacoesList))
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedido_messages' }, async (payload: any) => {
@@ -649,6 +658,14 @@ export default function App() {
       localStorage.setItem('isSomenteEnviarPedido', 'false');
       localStorage.setItem('loggedInEmail', email);
       setCurrentView('admin');
+      // Notificar pedidos pendentes ao admin
+      getPedidos().then(pedidos => {
+        const pendentes = (pedidos || []).filter((p: any) => p.status === 'AGUARDANDO' || p.status === 'SOLICITADO');
+        if (pendentes.length > 0) {
+          setNotification(`📋 Você tem ${pendentes.length} pedido(s) pendente(s)!`);
+          setTimeout(() => setNotification(null), 8000);
+        }
+      });
       return;
     }
 
@@ -684,6 +701,16 @@ export default function App() {
     localStorage.setItem('isSomenteEnviarPedido', String(canSendOnly));
     localStorage.setItem('loggedInEmail', email);
     setCurrentView(user.role === 'ADMIN' ? 'admin' : 'catalog');
+    // Notificar pedidos pendentes ao admin
+    if (user.role === 'ADMIN') {
+      getPedidos().then(pedidos => {
+        const pendentes = (pedidos || []).filter((p: any) => p.status === 'AGUARDANDO' || p.status === 'SOLICITADO');
+        if (pendentes.length > 0) {
+          setNotification(`📋 Você tem ${pendentes.length} pedido(s) pendente(s)!`);
+          setTimeout(() => setNotification(null), 8000);
+        }
+      });
+    }
   };
 
 
@@ -877,7 +904,8 @@ export default function App() {
         setCurrentView('login');
         return;
       }
-      if (isSomenteEnviarPedido) {
+      const total = cartItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
+      if (isSomenteEnviarPedido || total === 0) {
         runOrderDirectly();
       } else {
         setCurrentView('checkout');
@@ -908,6 +936,16 @@ export default function App() {
             >
               PEDIDO
             </button>
+
+            {/* Botões de Download uTorrent e Daemon Tools */}
+            <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <img src="/utorrent-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
+              Download uTorrent
+            </a>
+            <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <img src="/daemontools-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
+              Download Daemon Tools
+            </a>
           </nav>
         </div>
 
@@ -975,7 +1013,7 @@ export default function App() {
               disabled={cartItems.length === 0}
               className="w-full bg-[#00e5ff] text-black font-black uppercase py-4 rounded hover:bg-cyan-300 transition-colors tracking-widest flex items-center justify-center gap-2 mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSomenteEnviarPedido ? 'ENVIAR O PEDIDO \u2192' : 'FINALIZAR COMPRA \u2192'}
+              {(isSomenteEnviarPedido || totalAmount === 0) ? 'ENVIAR O PEDIDO \u2192' : 'FINALIZAR COMPRA \u2192'}
             </button>
             <button 
               onClick={() => setCurrentView('catalog')}
@@ -1135,6 +1173,16 @@ export default function App() {
             >
               PEDIDO
             </button>
+
+            {/* Botões de Download uTorrent e Daemon Tools */}
+            <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <img src="/utorrent-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
+              Download uTorrent
+            </a>
+            <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <img src="/daemontools-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
+              Download Daemon Tools
+            </a>
           </nav>
         </div>
 
@@ -1264,6 +1312,16 @@ export default function App() {
             >
               PEDIDO
             </button>
+
+            {/* Botões de Download uTorrent e Daemon Tools */}
+            <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <img src="/utorrent-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
+              Download uTorrent
+            </a>
+            <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <img src="/daemontools-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
+              Download Daemon Tools
+            </a>
           </nav>
         </div>
 
@@ -1592,6 +1650,17 @@ export default function App() {
             >
               PEDIDO
             </button>
+
+            {/* Botões de Download uTorrent e Daemon Tools */}
+            <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <img src="/utorrent-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
+              Download uTorrent
+            </a>
+            <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <img src="/daemontools-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
+              Download Daemon Tools
+            </a>
+
             <div className="flex items-center gap-2 text-[#ff6b00] uppercase">
               <Shield size={16} />
               ADMIN
@@ -1749,7 +1818,7 @@ export default function App() {
                                <p className="text-gray-400 font-mono text-[10px] uppercase">Plataforma: <span className="text-gray-300">{game.platform}</span></p>
                             </div>
                             <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 shrink-0 w-full sm:w-auto">
-                               <p className="text-[#00ff44] font-bold text-sm">R$ {Number(game.price).toFixed(2)}</p>
+                               <p className={`font-bold text-sm ${Number(game.price) === 0 ? 'text-[#ffcc00]' : 'text-[#00ff44]'}`}>{Number(game.price) === 0 ? 'GRÁTIS' : `R$ ${Number(game.price).toFixed(2)}`}</p>
                                <span className={`px-2 py-0.5 border text-[9px] font-bold tracking-wider rounded uppercase ${(game.status || 'ATIVO') === 'ATIVO'
                                  ? 'border-[#00ff44] text-[#00ff44] bg-[#00ff44]/10'
                                  : 'border-red-500 text-red-500 bg-red-500/10'
@@ -2773,6 +2842,17 @@ export default function App() {
             >
               PEDIDO
             </button>
+
+            {/* Botões de Download uTorrent e Daemon Tools */}
+            <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <img src="/utorrent-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
+              Download uTorrent
+            </a>
+            <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <img src="/daemontools-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
+              Download Daemon Tools
+            </a>
+
             {!isLoggedIn ? (
               <button onClick={() => setCurrentView('login')} className="flex items-center gap-2 hover:text-white transition-colors uppercase">
                 <User size={16} />
@@ -2872,8 +2952,8 @@ export default function App() {
 
               <div className="mt-auto border-t border-gray-800 pt-8">
                 <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">PREÇO</div>
-                <div className="text-5xl font-black text-[#00ff44] mb-8 drop-shadow-[0_0_15px_rgba(0,255,68,0.2)]">
-                  R$ {Number(selectedGame.price).toFixed(2)}
+                <div className={`text-5xl font-black mb-8 drop-shadow-[0_0_15px_rgba(0,255,68,0.2)] ${Number(selectedGame.price) === 0 ? 'text-[#ffcc00]' : 'text-[#00ff44]'}`}>
+                  {Number(selectedGame.price) === 0 ? 'GRÁTIS' : `R$ ${Number(selectedGame.price).toFixed(2)}`}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -2927,6 +3007,16 @@ export default function App() {
           >
             PEDIDO
           </button>
+
+          {/* Botões de Download uTorrent e Daemon Tools */}
+          <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+            <img src="/utorrent-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
+            Download uTorrent
+          </a>
+          <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+            <img src="/daemontools-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
+            Download Daemon Tools
+          </a>
           {!isLoggedIn ? (
             <button onClick={() => setCurrentView('login')} className="flex items-center gap-2 hover:text-white transition-colors uppercase">
               <User size={16} />
@@ -3051,8 +3141,8 @@ export default function App() {
                   <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                     {game.platform}
                   </span>
-                  <span className="text-lg font-black text-[#00ff44]">
-                    R$ {game.price.toFixed(2)}
+                  <span className={`text-lg font-black ${Number(game.price) === 0 ? 'text-[#ffcc00]' : 'text-[#00ff44]'}`}>
+                    {Number(game.price) === 0 ? 'GRÁTIS' : `R$ ${game.price.toFixed(2)}`}
                   </span>
                 </div>
 

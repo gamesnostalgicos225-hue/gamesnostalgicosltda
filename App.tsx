@@ -846,6 +846,18 @@ export default function App() {
             >
               PEDIDO
             </button>
+
+            {/* Botões de Download uTorrent e Daemon Tools */}
+            <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <div className="w-5 h-5 bg-[#32CD32] rounded-full flex items-center justify-center text-[12px] text-white font-bold shadow-[0_0_10px_rgba(50,205,50,0.3)]">µ</div>
+              Download uTorrent
+            </a>
+            <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <div className="w-5 h-5 bg-[#00e5ff] rounded-full flex items-center justify-center text-white shadow-[0_0_10px_rgba(0,229,255,0.3)]">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              Download Daemon Tools
+            </a>
           </nav>
         </div>
 
@@ -1073,6 +1085,18 @@ export default function App() {
             >
               PEDIDO
             </button>
+
+            {/* Botões de Download uTorrent e Daemon Tools */}
+            <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <div className="w-5 h-5 bg-[#32CD32] rounded-full flex items-center justify-center text-[12px] text-white font-bold shadow-[0_0_10px_rgba(50,205,50,0.3)]">µ</div>
+              Download uTorrent
+            </a>
+            <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <div className="w-5 h-5 bg-[#00e5ff] rounded-full flex items-center justify-center text-white shadow-[0_0_10px_rgba(0,229,255,0.3)]">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              Download Daemon Tools
+            </a>
           </nav>
         </div>
 
@@ -1202,6 +1226,18 @@ export default function App() {
             >
               PEDIDO
             </button>
+
+            {/* Botões de Download uTorrent e Daemon Tools */}
+            <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <div className="w-5 h-5 bg-[#32CD32] rounded-full flex items-center justify-center text-[12px] text-white font-bold shadow-[0_0_10px_rgba(50,205,50,0.3)]">µ</div>
+              Download uTorrent
+            </a>
+            <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <div className="w-5 h-5 bg-[#00e5ff] rounded-full flex items-center justify-center text-white shadow-[0_0_10px_rgba(0,229,255,0.3)]">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              Download Daemon Tools
+            </a>
           </nav>
         </div>
 
@@ -1530,6 +1566,18 @@ export default function App() {
             >
               PEDIDO
             </button>
+
+            {/* Botões de Download uTorrent e Daemon Tools */}
+            <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <div className="w-5 h-5 bg-[#32CD32] rounded-full flex items-center justify-center text-[12px] text-white font-bold shadow-[0_0_10px_rgba(50,205,50,0.3)]">µ</div>
+              Download uTorrent
+            </a>
+            <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <div className="w-5 h-5 bg-[#00e5ff] rounded-full flex items-center justify-center text-white shadow-[0_0_10px_rgba(0,229,255,0.3)]">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              Download Daemon Tools
+            </a>
             <div className="flex items-center gap-2 text-[#ff6b00] uppercase">
               <Shield size={16} />
               ADMIN
@@ -2690,6 +2738,18 @@ export default function App() {
             >
               PEDIDO
             </button>
+
+            {/* Botões de Download uTorrent e Daemon Tools */}
+            <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <div className="w-5 h-5 bg-[#32CD32] rounded-full flex items-center justify-center text-[12px] text-white font-bold shadow-[0_0_10px_rgba(50,205,50,0.3)]">µ</div>
+              Download uTorrent
+            </a>
+            <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
+              <div className="w-5 h-5 bg-[#00e5ff] rounded-full flex items-center justify-center text-white shadow-[0_0_10px_rgba(0,229,255,0.3)]">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              Download Daemon Tools
+            </a>
             {!isLoggedIn ? (
               <button onClick={() => setCurrentView('login')} className="flex items-center gap-2 hover:text-white transition-colors uppercase">
                 <User size={16} />
@@ -2844,6 +2904,18 @@ export default function App() {
           >
             PEDIDO
           </button>
+          
+          {/* Botões de Download uTorrent e Daemon Tools */}
+          <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase">
+            <div className="w-5 h-5 bg-[#32CD32] rounded-full flex items-center justify-center text-[12px] text-white font-bold shadow-[0_0_10px_rgba(50,205,50,0.3)]">µ</div>
+            Download uTorrent
+          </a>
+          <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase">
+            <div className="w-5 h-5 bg-[#00e5ff] rounded-full flex items-center justify-center text-white shadow-[0_0_10px_rgba(0,229,255,0.3)]">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+            Download Daemon Tools
+          </a>
           {!isLoggedIn ? (
             <button onClick={() => setCurrentView('login')} className="flex items-center gap-2 hover:text-white transition-colors uppercase">
               <User size={16} />
