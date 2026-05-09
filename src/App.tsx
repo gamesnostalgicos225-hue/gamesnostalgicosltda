@@ -923,29 +923,31 @@ export default function App() {
             <button onClick={() => setCurrentView('catalog')} className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors">
               VOLTAR AO CATÁLOGO
             </button>
-            <button 
-              onClick={() => {
-                if(!isLoggedIn) {
-                  alert("Por favor, faça login para fazer um pedido!");
-                  setCurrentView('login');
-                } else {
-                  setIsAddingSolicitacao(true);
-                }
-              }} 
-              className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors"
-            >
-              PEDIDO
-            </button>
-
-            {/* Botões de Download uTorrent e Daemon Tools */}
-            <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
-              <img src="/utorrent-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
-              Download uTorrent
-            </a>
-            <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
-              <img src="/daemontools-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
-              Download Daemon Tools
-            </a>
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center gap-6">
+                <button 
+                  onClick={() => {
+                    if(!isLoggedIn) {
+                      alert("Por favor, faça login para fazer um pedido!");
+                      setCurrentView('login');
+                    } else {
+                      setIsAddingSolicitacao(true);
+                    }
+                  }} 
+                  className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors"
+                >
+                  PEDIDO
+                </button>
+              </div>
+              <div className="flex items-center gap-4">
+                <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
+                  <img src="/utorrent-logo.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
+                </a>
+                <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" title="Download Daemon Tools" className="hover:scale-110 transition-transform">
+                  <img src="/daemontools-logo.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
+                </a>
+              </div>
+            </div>
           </nav>
         </div>
 
@@ -1160,29 +1162,31 @@ export default function App() {
             <button onClick={() => setCurrentView('cart')} className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors">
               VOLTAR AO CARRINHO
             </button>
-            <button 
-              onClick={() => {
-                if(!isLoggedIn) {
-                  alert("Por favor, faça login para fazer um pedido!");
-                  setCurrentView('login');
-                } else {
-                  setIsAddingSolicitacao(true);
-                }
-              }} 
-              className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors"
-            >
-              PEDIDO
-            </button>
-
-            {/* Botões de Download uTorrent e Daemon Tools */}
-            <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
-              <img src="/utorrent-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
-              Download uTorrent
-            </a>
-            <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
-              <img src="/daemontools-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
-              Download Daemon Tools
-            </a>
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center gap-6">
+                <button 
+                  onClick={() => {
+                    if(!isLoggedIn) {
+                      alert("Por favor, faça login para fazer um pedido!");
+                      setCurrentView('login');
+                    } else {
+                      setIsAddingSolicitacao(true);
+                    }
+                  }} 
+                  className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors"
+                >
+                  PEDIDO
+                </button>
+              </div>
+              <div className="flex items-center gap-4">
+                <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
+                  <img src="/utorrent-logo.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
+                </a>
+                <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" title="Download Daemon Tools" className="hover:scale-110 transition-transform">
+                  <img src="/daemontools-logo.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
+                </a>
+              </div>
+            </div>
           </nav>
         </div>
 
@@ -1299,29 +1303,31 @@ export default function App() {
             <button onClick={() => setCurrentView('catalog')} className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors">
               VOLTAR AO CATÁLOGO
             </button>
-            <button 
-              onClick={() => {
-                if(!isLoggedIn) {
-                  alert("Por favor, faça login para fazer um pedido!");
-                  setCurrentView('login');
-                } else {
-                  setIsAddingSolicitacao(true);
-                }
-              }} 
-              className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors"
-            >
-              PEDIDO
-            </button>
-
-            {/* Botões de Download uTorrent e Daemon Tools */}
-            <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
-              <img src="/utorrent-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
-              Download uTorrent
-            </a>
-            <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
-              <img src="/daemontools-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
-              Download Daemon Tools
-            </a>
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center gap-6">
+                <button 
+                  onClick={() => {
+                    if(!isLoggedIn) {
+                      alert("Por favor, faça login para fazer um pedido!");
+                      setCurrentView('login');
+                    } else {
+                      setIsAddingSolicitacao(true);
+                    }
+                  }} 
+                  className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors"
+                >
+                  PEDIDO
+                </button>
+              </div>
+              <div className="flex items-center gap-4">
+                <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
+                  <img src="/utorrent-logo.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
+                </a>
+                <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" title="Download Daemon Tools" className="hover:scale-110 transition-transform">
+                  <img src="/daemontools-logo.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
+                </a>
+              </div>
+            </div>
           </nav>
         </div>
 
@@ -1637,41 +1643,42 @@ export default function App() {
           </div>
           <nav className="flex items-center gap-6 text-xs font-bold tracking-wider text-gray-400">
             <button onClick={() => setCurrentView('catalog')} className="hover:text-white transition-colors uppercase">CATÁLOGO</button>
-            <button 
-              onClick={() => {
-                if(!isLoggedIn) {
-                  alert("Por favor, faça login para fazer um pedido!");
-                  setCurrentView('login');
-                } else {
-                  setIsAddingSolicitacao(true);
-                }
-              }} 
-              className="hover:text-white transition-colors uppercase font-bold text-[#00e5ff]"
-            >
-              PEDIDO
-            </button>
-
-            {/* Botões de Download uTorrent e Daemon Tools */}
-            <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
-              <img src="/utorrent-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
-              Download uTorrent
-            </a>
-            <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
-              <img src="/daemontools-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
-              Download Daemon Tools
-            </a>
-
-            <div className="flex items-center gap-2 text-[#ff6b00] uppercase">
-              <Shield size={16} />
-              ADMIN
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center gap-6">
+                <button 
+                  onClick={() => {
+                    if(!isLoggedIn) {
+                      alert("Por favor, faça login para fazer um pedido!");
+                      setCurrentView('login');
+                    } else {
+                      setIsAddingSolicitacao(true);
+                    }
+                  }} 
+                  className="hover:text-white transition-colors uppercase font-bold text-[#00e5ff]"
+                >
+                  PEDIDO
+                </button>
+                <div className="flex items-center gap-2 text-[#ff6b00] uppercase">
+                  <Shield size={16} />
+                  ADMIN
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="hover:text-white transition-colors"
+                  title="Sair"
+                >
+                  <LogOut size={16} />
+                </button>
+              </div>
+              <div className="flex items-center gap-4">
+                <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
+                  <img src="/utorrent-logo.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
+                </a>
+                <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" title="Download Daemon Tools" className="hover:scale-110 transition-transform">
+                  <img src="/daemontools-logo.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
+                </a>
+              </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="hover:text-white transition-colors"
-              title="Sair"
-            >
-              <LogOut size={16} />
-            </button>
             <button
               onClick={() => setCurrentView('cart')}
               className="relative hover:text-white transition-colors"
@@ -2829,67 +2836,68 @@ export default function App() {
           </div>
           <nav className="flex items-center gap-6 text-xs font-bold tracking-wider text-gray-400">
             <button onClick={() => setCurrentView('catalog')} className="text-white transition-colors uppercase">CATÁLOGO</button>
-            <button 
-              onClick={() => {
-                if(!isLoggedIn) {
-                  alert("Por favor, faça login para fazer um pedido!");
-                  setCurrentView('login');
-                } else {
-                  setIsAddingSolicitacao(true);
-                }
-              }} 
-              className="hover:text-white transition-colors uppercase font-bold text-[#00e5ff]"
-            >
-              PEDIDO
-            </button>
-
-            {/* Botões de Download uTorrent e Daemon Tools */}
-            <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
-              <img src="/utorrent-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
-              Download uTorrent
-            </a>
-            <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
-              <img src="/daemontools-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
-              Download Daemon Tools
-            </a>
-
-            {!isLoggedIn ? (
-              <button onClick={() => setCurrentView('login')} className="flex items-center gap-2 hover:text-white transition-colors uppercase">
-                <User size={16} />
-                LOGIN
-              </button>
-            ) : isAdmin ? (
-              <>
-                <button onClick={() => setCurrentView('admin')} className="flex items-center gap-2 text-[#ff6b00] hover:text-orange-400 transition-colors uppercase cursor-pointer">
-                  <Shield size={16} />
-                  PAINEL ADMIN
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="hover:text-white transition-colors"
-                  title="Sair"
-                >
-                  <LogOut size={16} />
-                </button>
-              </>
-            ) : (
-              <>
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center gap-6">
                 <button 
-                  onClick={() => setCurrentView('account')}
-                  className="flex items-center gap-2 text-[#00e5ff] uppercase hover:text-cyan-300 transition-colors cursor-pointer"
+                  onClick={() => {
+                    if(!isLoggedIn) {
+                      alert("Por favor, faça login para fazer um pedido!");
+                      setCurrentView('login');
+                    } else {
+                      setIsAddingSolicitacao(true);
+                    }
+                  }} 
+                  className="hover:text-white transition-colors uppercase font-bold text-[#00e5ff]"
                 >
-                  <User size={16} />
-                  MINHA CONTA
+                  PEDIDO
                 </button>
-                <button
-                  onClick={handleLogout}
-                  className="hover:text-white transition-colors"
-                  title="Sair"
-                >
-                  <LogOut size={16} />
-                </button>
-              </>
-            )}
+                {!isLoggedIn ? (
+                  <button onClick={() => setCurrentView('login')} className="flex items-center gap-2 hover:text-white transition-colors uppercase">
+                    <User size={16} />
+                    LOGIN
+                  </button>
+                ) : isAdmin ? (
+                  <>
+                    <button onClick={() => setCurrentView('admin')} className="flex items-center gap-2 text-[#ff6b00] hover:text-orange-400 transition-colors uppercase cursor-pointer">
+                      <Shield size={16} />
+                      PAINEL ADMIN
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="hover:text-white transition-colors"
+                      title="Sair"
+                    >
+                      <LogOut size={16} />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button 
+                      onClick={() => setCurrentView('account')}
+                      className="flex items-center gap-2 text-[#00e5ff] uppercase hover:text-cyan-300 transition-colors cursor-pointer"
+                    >
+                      <User size={16} />
+                      MINHA CONTA
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="hover:text-white transition-colors"
+                      title="Sair"
+                    >
+                      <LogOut size={16} />
+                    </button>
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-4">
+                <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
+                  <img src="/utorrent-logo.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
+                </a>
+                <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" title="Download Daemon Tools" className="hover:scale-110 transition-transform">
+                  <img src="/daemontools-logo.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
+                </a>
+              </div>
+            </div>
             <button
               onClick={() => setCurrentView('cart')}
               className="relative hover:text-white transition-colors"
@@ -2994,66 +3002,68 @@ export default function App() {
         </div>
         <nav className="flex items-center gap-6 text-xs font-bold tracking-wider text-gray-400">
           <button onClick={() => setCurrentView('catalog')} className="hover:text-white transition-colors uppercase">CATÁLOGO</button>
-          <button 
-            onClick={() => {
-              if(!isLoggedIn) {
-                alert("Por favor, faça login para fazer um pedido!");
-                setCurrentView('login');
-              } else {
-                setIsAddingSolicitacao(true);
-              }
-            }} 
-            className="hover:text-white transition-colors uppercase font-bold text-[#00e5ff]"
-          >
-            PEDIDO
-          </button>
-
-          {/* Botões de Download uTorrent e Daemon Tools */}
-          <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
-            <img src="/utorrent-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
-            Download uTorrent
-          </a>
-          <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors uppercase whitespace-nowrap">
-            <img src="/daemontools-logo.png" className="w-6 h-6 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
-            Download Daemon Tools
-          </a>
-          {!isLoggedIn ? (
-            <button onClick={() => setCurrentView('login')} className="flex items-center gap-2 hover:text-white transition-colors uppercase">
-              <User size={16} />
-              LOGIN
-            </button>
-          ) : isAdmin ? (
-            <>
-              <button onClick={() => setCurrentView('admin')} className="flex items-center gap-2 text-[#ff6b00] hover:text-orange-400 transition-colors uppercase">
-                <Shield size={16} />
-                PAINEL ADMIN
-              </button>
-              <button
-                onClick={handleLogout}
-                className="hover:text-white transition-colors"
-                title="Sair"
-              >
-                <LogOut size={16} />
-              </button>
-            </>
-          ) : (
-            <>
-              <button 
-                onClick={() => setCurrentView('account')}
-                className="flex items-center gap-2 text-[#00e5ff] uppercase hover:text-cyan-300 transition-colors cursor-pointer"
-              >
-                <User size={16} />
-                MINHA CONTA
-              </button>
-              <button
-                onClick={handleLogout}
-                className="hover:text-white transition-colors"
-                title="Sair"
-              >
-                <LogOut size={16} />
-              </button>
-            </>
-          )}
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center gap-6">
+                <button 
+                  onClick={() => {
+                    if(!isLoggedIn) {
+                      alert("Por favor, faça login para fazer um pedido!");
+                      setCurrentView('login');
+                    } else {
+                      setIsAddingSolicitacao(true);
+                    }
+                  }} 
+                  className="hover:text-white transition-colors uppercase font-bold text-[#00e5ff]"
+                >
+                  PEDIDO
+                </button>
+                {!isLoggedIn ? (
+                  <button onClick={() => setCurrentView('login')} className="flex items-center gap-2 hover:text-white transition-colors uppercase">
+                    <User size={16} />
+                    LOGIN
+                  </button>
+                ) : isAdmin ? (
+                  <>
+                    <button onClick={() => setCurrentView('admin')} className="flex items-center gap-2 text-[#ff6b00] hover:text-orange-400 transition-colors uppercase">
+                      <Shield size={16} />
+                      PAINEL ADMIN
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="hover:text-white transition-colors"
+                      title="Sair"
+                    >
+                      <LogOut size={16} />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button 
+                      onClick={() => setCurrentView('account')}
+                      className="flex items-center gap-2 text-[#00e5ff] uppercase hover:text-cyan-300 transition-colors cursor-pointer"
+                    >
+                      <User size={16} />
+                      MINHA CONTA
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="hover:text-white transition-colors"
+                      title="Sair"
+                    >
+                      <LogOut size={16} />
+                    </button>
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-4">
+                <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
+                  <img src="/utorrent-logo.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
+                </a>
+                <a href="https://www.daemon-tools.cc/downloads/dtlite/" target="_blank" rel="noopener noreferrer" title="Download Daemon Tools" className="hover:scale-110 transition-transform">
+                  <img src="/daemontools-logo.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(0,229,255,0.5)]" alt="Daemon Tools" />
+                </a>
+              </div>
+            </div>
           <button
             onClick={() => setCurrentView('cart')}
             className="relative hover:text-white transition-colors"
