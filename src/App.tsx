@@ -3124,10 +3124,33 @@ export default function App() {
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                {/* Simulated PS2 Banner */}
+                {/* Dynamic Platform Banner */}
                 <div className="absolute top-0 left-0 right-0 bg-black/80 text-white text-[10px] font-bold px-2 py-1 flex justify-between items-center border-b border-gray-700">
-                  <span>PlayStation 2</span>
-                  <span className="text-blue-500">PS</span>
+                  <span className="capitalize">
+                    {(() => {
+                      const p = (game.platform || '').toLowerCase();
+                      if (p === 'ps1' || p === 'playstation 1') return 'PlayStation 1';
+                      if (p === 'ps2' || p === 'playstation 2') return 'PlayStation 2';
+                      if (p === 'ps3' || p === 'playstation 3') return 'PlayStation 3';
+                      if (p === 'ps4' || p === 'playstation 4') return 'PlayStation 4';
+                      if (p === 'pc' || p === 'win') return 'PC Windows';
+                      if (p === 'dreamcast' || p === 'dc') return 'Dreamcast';
+                      return game.platform;
+                    })()}
+                  </span>
+                  <span className={
+                    ((game.platform || '').toLowerCase().includes('ps') || (game.platform || '').toLowerCase().includes('playstation')) ? 'text-blue-500' :
+                    ((game.platform || '').toLowerCase() === 'pc' || (game.platform || '').toLowerCase() === 'win') ? 'text-[#00e5ff]' :
+                    'text-[#ff6b00]'
+                  }>
+                    {(() => {
+                      const p = (game.platform || '').toLowerCase();
+                      if (p.includes('ps') || p.includes('playstation')) return 'PS';
+                      if (p === 'pc' || p === 'win') return 'PC';
+                      if (p === 'dreamcast' || p === 'dc') return 'DC';
+                      return p.substring(0, 2).toUpperCase();
+                    })()}
+                  </span>
                 </div>
               </div>
 
