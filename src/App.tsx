@@ -923,7 +923,7 @@ export default function App() {
             <button onClick={() => setCurrentView('catalog')} className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors">
               VOLTAR AO CATÁLOGO
             </button>
-            <div className="flex flex-col items-center gap-1">
+            <div className="relative flex flex-col items-center">
               <button 
                 onClick={() => {
                   if(!isLoggedIn) {
@@ -937,7 +937,7 @@ export default function App() {
               >
                 PEDIDO
               </button>
-              <div className="flex items-center gap-3">
+              <div className="absolute top-full mt-1 flex items-center gap-3">
                 <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
                   <img src="/dl-tool1.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
                 </a>
@@ -1160,7 +1160,7 @@ export default function App() {
             <button onClick={() => setCurrentView('cart')} className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors">
               VOLTAR AO CARRINHO
             </button>
-            <div className="flex flex-col items-center gap-1">
+            <div className="relative flex flex-col items-center">
               <button 
                 onClick={() => {
                   if(!isLoggedIn) {
@@ -1174,7 +1174,7 @@ export default function App() {
               >
                 PEDIDO
               </button>
-              <div className="flex items-center gap-3">
+              <div className="absolute top-full mt-1 flex items-center gap-3">
                 <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
                   <img src="/dl-tool1.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
                 </a>
@@ -1299,7 +1299,7 @@ export default function App() {
             <button onClick={() => setCurrentView('catalog')} className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors">
               VOLTAR AO CATÁLOGO
             </button>
-            <div className="flex flex-col items-center gap-1">
+            <div className="relative flex flex-col items-center">
               <button 
                 onClick={() => {
                   if(!isLoggedIn) {
@@ -1313,7 +1313,7 @@ export default function App() {
               >
                 PEDIDO
               </button>
-              <div className="flex items-center gap-3">
+              <div className="absolute top-full mt-1 flex items-center gap-3">
                 <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
                   <img src="/dl-tool1.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
                 </a>
@@ -1637,7 +1637,7 @@ export default function App() {
           </div>
           <nav className="flex items-center gap-6 text-xs font-bold tracking-wider text-gray-400">
             <button onClick={() => setCurrentView('catalog')} className="hover:text-white transition-colors uppercase">CATÁLOGO</button>
-            <div className="flex flex-col items-center gap-1">
+            <div className="relative flex flex-col items-center">
               <button 
                 onClick={() => {
                   if(!isLoggedIn) {
@@ -1651,7 +1651,7 @@ export default function App() {
               >
                 PEDIDO
               </button>
-              <div className="flex items-center gap-3">
+              <div className="absolute top-full mt-1 flex items-center gap-3">
                 <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
                   <img src="/dl-tool1.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
                 </a>
@@ -2829,7 +2829,7 @@ export default function App() {
           </div>
           <nav className="flex items-center gap-6 text-xs font-bold tracking-wider text-gray-400">
             <button onClick={() => setCurrentView('catalog')} className="text-white transition-colors uppercase">CATÁLOGO</button>
-            <div className="flex flex-col items-center gap-1">
+            <div className="relative flex flex-col items-center">
               <button 
                 onClick={() => {
                   if(!isLoggedIn) {
@@ -2843,7 +2843,7 @@ export default function App() {
               >
                 PEDIDO
               </button>
-              <div className="flex items-center gap-3">
+              <div className="absolute top-full mt-1 flex items-center gap-3">
                 <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
                   <img src="/dl-tool1.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
                 </a>
@@ -2994,7 +2994,7 @@ export default function App() {
         </div>
         <nav className="flex items-center gap-6 text-xs font-bold tracking-wider text-gray-400">
           <button onClick={() => setCurrentView('catalog')} className="hover:text-white transition-colors uppercase">CATÁLOGO</button>
-          <div className="flex flex-col items-center gap-1">
+          <div className="relative flex flex-col items-center">
             <button 
               onClick={() => {
                 if(!isLoggedIn) {
@@ -3008,7 +3008,7 @@ export default function App() {
             >
               PEDIDO
             </button>
-            <div className="flex items-center gap-3">
+            <div className="absolute top-full mt-1 flex items-center gap-3">
               <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
                 <img src="/dl-tool1.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
               </a>
