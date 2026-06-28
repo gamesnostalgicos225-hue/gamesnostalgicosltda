@@ -102,7 +102,7 @@ export default function App() {
   const [showPassword, setShowPassword] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
-  const [adminActiveTab, setAdminActiveTab] = useState<'pedidos' | 'usuarios' | 'jogos' | 'consoles' | 'solicitacoes'>('jogos');
+  const [adminActiveTab, setAdminActiveTab] = useState<'pedidos' | 'usuarios' | 'jogos' | 'consoles' | 'solicitacoes' | 'chat'>('jogos');
   const [editingConsole, setEditingConsole] = useState<any>(null);
   const [editingGame, setEditingGame] = useState<any>(null);
   const [adminGameSearch, setAdminGameSearch] = useState('');
@@ -1828,6 +1828,17 @@ export default function App() {
                 </span>
               )}
             </div>
+            <div
+              onClick={() => setAdminActiveTab('chat')}
+              className={`flex items-center gap-2 cursor-pointer transition-colors ${adminActiveTab === 'chat' ? 'text-white' : 'hover:text-white'}`}
+            >
+              <MessageCircle size={16} /> CHAT ({pedidosList.filter(p => p.messages && p.messages.length > 0).length})
+              {pedidosList.filter(p => p.hasUnreadAdmin).length > 0 && (
+                <span className="bg-[#ff6b00] text-white text-[10px] rounded w-4 h-4 flex items-center justify-center font-sans font-bold ml-1">
+                  {pedidosList.filter(p => p.hasUnreadAdmin).length}
+                </span>
+              )}
+            </div>
           </div>
 
           {adminActiveTab === 'jogos' && (
@@ -1965,7 +1976,7 @@ export default function App() {
             </div>
            )}
 
-          {adminActiveTab === 'solicitacoes' && (
+           {adminActiveTab === 'solicitacoes' && (
             <div className="space-y-6">
                <h2 className="text-xl font-black uppercase text-white flex items-center gap-2">
                  <FilePlus className="text-[#ff6b00]" /> GESTÃO DE ENCOMENDAS
@@ -2044,6 +2055,66 @@ export default function App() {
                    ))}
                    {renderAdminPagination(solicitacoesList.length)}
                    </>
+                 )}
+               </div>
+            </div>
+          )}
+
+          {adminActiveTab === 'chat' && (
+            <div className="space-y-6">
+               <h2 className="text-xl font-black uppercase text-white flex items-center gap-2">
+                 <MessageCircle className="text-[#00e5ff]" /> CHAT COM CLIENTES
+               </h2>
+               
+               <div className="grid grid-cols-1 gap-4">
+                 {pedidosList.filter(p => p.messages && p.messages.length > 0)
+                   .sort((a, b) => {
+                     const aLatest = a.messages[a.messages.length - 1];
+                     const bLatest = b.messages[b.messages.length - 1];
+                     return new Date(bLatest.created_at || bLatest.timestamp).getTime() - new Date(aLatest.created_at || aLatest.timestamp).getTime();
+                   })
+                   .map(pedido => {
+                     const latestMessage = pedido.messages[pedido.messages.length - 1];
+                     return (
+                       <div key={pedido.id} className={`bg-black border ${pedido.hasUnreadAdmin ? 'border-[#00e5ff]' : 'border-gray-800'} rounded p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-gray-600 transition-colors`}>
+                         <div className="flex-1 w-full">
+                           <div className="flex items-center gap-3 mb-2">
+                             <span className="text-xs font-mono text-gray-500 italic">Pedido #{pedido.orderNumber}</span>
+                             {pedido.hasUnreadAdmin && (
+                               <span className="text-[10px] font-black px-2 py-0.5 rounded bg-[#00e5ff]/20 text-[#00e5ff] animate-pulse">NOVA MENSAGEM</span>
+                             )}
+                           </div>
+                           <h3 className="text-lg font-black text-white">{pedido.clientInfo?.nome || pedido.clientEmail}</h3>
+                           <p className="text-[12px] text-gray-400 mt-1">{pedido.clientEmail}</p>
+                           
+                           <div className="mt-4 p-4 bg-gray-900 rounded border border-gray-800 relative w-full overflow-hidden">
+                             <span className="absolute -top-3 left-4 bg-black px-2 text-[10px] text-gray-500 uppercase font-bold">
+                               Última mensagem ({new Date(latestMessage.created_at || latestMessage.timestamp).toLocaleDateString('pt-BR')} às {new Date(latestMessage.created_at || latestMessage.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })})
+                             </span>
+                             <p className="text-sm text-gray-300 mt-1 line-clamp-2">
+                               <strong className="text-white">{latestMessage.isAdmin ? 'Você' : latestMessage.sender}:</strong> {latestMessage.text}
+                             </p>
+                           </div>
+                         </div>
+                         
+                         <div className="flex items-center justify-end shrink-0 w-full md:w-auto">
+                           <button
+                             onClick={() => {
+                               setActiveChatOrderId(pedido.id);
+                               if (pedido.hasUnreadAdmin) {
+                                 setPedidosList(prev => prev.map(p => p.id === pedido.id ? { ...p, hasUnreadAdmin: false } : p));
+                               }
+                             }}
+                             className="bg-[#00e5ff] text-black w-full md:w-auto font-black uppercase py-3 px-6 rounded hover:bg-cyan-400 transition-colors flex items-center justify-center gap-2 text-sm"
+                           >
+                             <MessageCircle size={18} /> Responder
+                           </button>
+                         </div>
+                       </div>
+                     );
+                 })}
+                 {pedidosList.filter(p => p.messages && p.messages.length > 0).length === 0 && (
+                   <p className="text-gray-500 font-mono text-sm py-10 text-center border border-dashed border-gray-800 rounded">Nenhuma conversa encontrada.</p>
                  )}
                </div>
             </div>
