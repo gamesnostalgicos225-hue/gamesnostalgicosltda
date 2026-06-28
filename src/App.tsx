@@ -923,7 +923,7 @@ export default function App() {
             <button onClick={() => setCurrentView('catalog')} className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors">
               VOLTAR AO CATÁLOGO
             </button>
-            <div className="flex flex-col items-center gap-1">
+            <div className="relative flex flex-col items-center">
               <button 
                 onClick={() => {
                   if(!isLoggedIn) {
@@ -937,7 +937,7 @@ export default function App() {
               >
                 PEDIDO
               </button>
-              <div className="flex items-center gap-3">
+              <div className="absolute top-full mt-1 flex items-center gap-3">
                 <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
                   <img src="/dl-tool1.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
                 </a>
@@ -1160,7 +1160,7 @@ export default function App() {
             <button onClick={() => setCurrentView('cart')} className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors">
               VOLTAR AO CARRINHO
             </button>
-            <div className="flex flex-col items-center gap-1">
+            <div className="relative flex flex-col items-center">
               <button 
                 onClick={() => {
                   if(!isLoggedIn) {
@@ -1174,7 +1174,7 @@ export default function App() {
               >
                 PEDIDO
               </button>
-              <div className="flex items-center gap-3">
+              <div className="absolute top-full mt-1 flex items-center gap-3">
                 <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
                   <img src="/dl-tool1.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
                 </a>
@@ -1299,7 +1299,7 @@ export default function App() {
             <button onClick={() => setCurrentView('catalog')} className="text-gray-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-colors">
               VOLTAR AO CATÁLOGO
             </button>
-            <div className="flex flex-col items-center gap-1">
+            <div className="relative flex flex-col items-center">
               <button 
                 onClick={() => {
                   if(!isLoggedIn) {
@@ -1313,7 +1313,7 @@ export default function App() {
               >
                 PEDIDO
               </button>
-              <div className="flex items-center gap-3">
+              <div className="absolute top-full mt-1 flex items-center gap-3">
                 <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
                   <img src="/dl-tool1.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
                 </a>
@@ -1637,7 +1637,7 @@ export default function App() {
           </div>
           <nav className="flex items-center gap-6 text-xs font-bold tracking-wider text-gray-400">
             <button onClick={() => setCurrentView('catalog')} className="hover:text-white transition-colors uppercase">CATÁLOGO</button>
-            <div className="flex flex-col items-center gap-1">
+            <div className="relative flex flex-col items-center">
               <button 
                 onClick={() => {
                   if(!isLoggedIn) {
@@ -1651,7 +1651,7 @@ export default function App() {
               >
                 PEDIDO
               </button>
-              <div className="flex items-center gap-3">
+              <div className="absolute top-full mt-1 flex items-center gap-3">
                 <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
                   <img src="/dl-tool1.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
                 </a>
@@ -1902,6 +1902,11 @@ export default function App() {
                          <h3 className="text-lg font-black uppercase text-white">{sol.game_name}</h3>
                          <p className="text-xs text-gray-400 font-mono">PLATAFORMA: <span className="text-[#00e5ff]">{sol.platform}</span></p>
                          <p className="text-[10px] text-gray-500 uppercase mt-1">CLIENTE: {sol.client_email}</p>
+                         {sol.created_at && (
+                           <p className="text-[10px] text-gray-500 uppercase mt-1">
+                             SOLICITADO EM: {new Date(sol.created_at).toLocaleDateString('pt-BR')} ÀS {new Date(sol.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                           </p>
+                         )}
                        </div>
                        </div>
                        
@@ -2829,7 +2834,7 @@ export default function App() {
           </div>
           <nav className="flex items-center gap-6 text-xs font-bold tracking-wider text-gray-400">
             <button onClick={() => setCurrentView('catalog')} className="text-white transition-colors uppercase">CATÁLOGO</button>
-            <div className="flex flex-col items-center gap-1">
+            <div className="relative flex flex-col items-center">
               <button 
                 onClick={() => {
                   if(!isLoggedIn) {
@@ -2843,7 +2848,7 @@ export default function App() {
               >
                 PEDIDO
               </button>
-              <div className="flex items-center gap-3">
+              <div className="absolute top-full mt-1 flex items-center gap-3">
                 <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
                   <img src="/dl-tool1.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
                 </a>
@@ -2994,7 +2999,7 @@ export default function App() {
         </div>
         <nav className="flex items-center gap-6 text-xs font-bold tracking-wider text-gray-400">
           <button onClick={() => setCurrentView('catalog')} className="hover:text-white transition-colors uppercase">CATÁLOGO</button>
-          <div className="flex flex-col items-center gap-1">
+          <div className="relative flex flex-col items-center">
             <button 
               onClick={() => {
                 if(!isLoggedIn) {
@@ -3008,7 +3013,7 @@ export default function App() {
             >
               PEDIDO
             </button>
-            <div className="flex items-center gap-3">
+            <div className="absolute top-full mt-1 flex items-center gap-3">
               <a href="https://www.utorrent.com/downloads/win/" target="_blank" rel="noopener noreferrer" title="Download uTorrent" className="hover:scale-110 transition-transform">
                 <img src="/dl-tool1.png" className="w-5 h-5 object-contain filter drop-shadow-[0_0_5px_rgba(50,205,50,0.5)]" alt="uTorrent" />
               </a>
@@ -3124,10 +3129,33 @@ export default function App() {
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                {/* Simulated PS2 Banner */}
+                {/* Dynamic Platform Banner */}
                 <div className="absolute top-0 left-0 right-0 bg-black/80 text-white text-[10px] font-bold px-2 py-1 flex justify-between items-center border-b border-gray-700">
-                  <span>PlayStation 2</span>
-                  <span className="text-blue-500">PS</span>
+                  <span className="capitalize">
+                    {(() => {
+                      const p = (game.platform || '').toLowerCase();
+                      if (p === 'ps1' || p === 'playstation 1') return 'PlayStation 1';
+                      if (p === 'ps2' || p === 'playstation 2') return 'PlayStation 2';
+                      if (p === 'ps3' || p === 'playstation 3') return 'PlayStation 3';
+                      if (p === 'ps4' || p === 'playstation 4') return 'PlayStation 4';
+                      if (p === 'pc' || p === 'win') return 'PC Windows';
+                      if (p === 'dreamcast' || p === 'dc') return 'Dreamcast';
+                      return game.platform;
+                    })()}
+                  </span>
+                  <span className={
+                    ((game.platform || '').toLowerCase().includes('ps') || (game.platform || '').toLowerCase().includes('playstation')) ? 'text-blue-500' :
+                    ((game.platform || '').toLowerCase() === 'pc' || (game.platform || '').toLowerCase() === 'win') ? 'text-[#00e5ff]' :
+                    'text-[#ff6b00]'
+                  }>
+                    {(() => {
+                      const p = (game.platform || '').toLowerCase();
+                      if (p.includes('ps') || p.includes('playstation')) return 'PS';
+                      if (p === 'pc' || p === 'win') return 'PC';
+                      if (p === 'dreamcast' || p === 'dc') return 'DC';
+                      return p.substring(0, 2).toUpperCase();
+                    })()}
+                  </span>
                 </div>
               </div>
 
